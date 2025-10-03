@@ -10,7 +10,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /* Custom font import and application */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=100..900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         :root {
             font-family: 'Inter', sans-serif;
         }
@@ -213,10 +213,12 @@
 
     <!-- JavaScript for Store Logic -->
     <script>
-        // Store Product Data
+        // Store Product Data - Added 'gallery' array for multiple product views
         const PRODUCTS = [
-            { id: 1, name: "The Classic Tee (Navy)", price: 29.99, image: "https://placehold.co/600x600/3B82F6/FFFFFF?text=Navy+Tee", category: "T-Shirts" },
-            { id: 2, name: "Urban Explorer Hoodie", price: 59.99, image: "https://placehold.co/600x600/4B5563/FFFFFF?text=Grey+Hoodie", category: "Hoodies" },
+            { id: 1, name: "The Classic Tee (Navy)", price: 29.99, image: "https://placehold.co/600x600/3B82F6/FFFFFF?text=Navy+Tee+FRONT", category: "T-Shirts", 
+              gallery: ["https://placehold.co/600x600/3B82F6/FFFFFF?text=Navy+Tee+FRONT", "https://placehold.co/600x600/2563EB/FFFFFF?text=Navy+Tee+BACK", "https://placehold.co/600x600/1D4ED8/FFFFFF?text=Navy+Tee+DETAIL"] },
+            { id: 2, name: "Urban Explorer Hoodie", price: 59.99, image: "https://placehold.co/600x600/4B5563/FFFFFF?text=Grey+Hoodie+FRONT", category: "Hoodies", 
+              gallery: ["https://placehold.co/600x600/4B5563/FFFFFF?text=Grey+Hoodie+FRONT", "https://placehold.co/600x600/374151/FFFFFF?text=Grey+Hoodie+HOOD", "https://placehold.co/600x600/1F2937/FFFFFF?text=Grey+Hoodie+POCKET"] },
             { id: 3, name: "Essential Denim (Slim Fit)", price: 79.99, image: "https://placehold.co/600x600/10B981/FFFFFF?text=Denim+Jeans", category: "Jeans" },
             { id: 4, name: "Plaid Overshirt (Autumn)", price: 49.99, image: "https://placehold.co/600x600/F59E0B/FFFFFF?text=Plaid+Shirt", category: "Shirts" },
             { id: 5, name: "Aero Joggers", price: 64.99, image: "https://placehold.co/600x600/8B5CF6/FFFFFF?text=Purple+Joggers", category: "Bottoms" },
@@ -460,10 +462,27 @@
             }
         }
         
-        // --- Quick View Functions (New Feature) ---
+        // --- Quick View Image Gallery Functions (New Feature) ---
 
         /**
-         * Opens the Quick View modal and populates it with product data.
+         * Switches the main image displayed in the Quick View modal.
+         * Also updates the active thumbnail border.
+         * @param {string} newSrc - The URL of the new image.
+         * @param {HTMLElement} element - The clicked thumbnail element.
+         */
+        function switchQuickViewImage(newSrc, element) {
+            document.getElementById('quickview-main-image').src = newSrc;
+            
+            // Update active thumbnail styling
+            const thumbnails = document.querySelectorAll('.quickview-thumbnail');
+            thumbnails.forEach(thumb => {
+                thumb.classList.remove('ring-4', 'ring-indigo-500', 'ring-offset-2');
+            });
+            element.classList.add('ring-4', 'ring-indigo-500', 'ring-offset-2');
+        }
+
+        /**
+         * Opens the Quick View modal and populates it with product data and image gallery.
          * @param {number} id - The product ID.
          */
         function openQuickView(id) {
@@ -472,6 +491,21 @@
 
             const modalContainer = document.getElementById('quickview-modal');
             const body = document.getElementById('body-container');
+            
+            // Determine images to display (use gallery if available, otherwise just the main image)
+            const images = product.gallery || [product.image];
+            const firstImage = images[0] || product.image; // Image shown initially
+
+            // Generate thumbnails HTML
+            const thumbnailsHtml = images.map((imgSrc, index) => `
+                <img src="${imgSrc}" 
+                    alt="${product.name} View ${index + 1}" 
+                    class="quickview-thumbnail w-16 h-16 object-cover rounded-lg cursor-pointer transition duration-150 border border-gray-200 ${index === 0 ? 'ring-4 ring-indigo-500 ring-offset-2' : ''}" 
+                    onclick="switchQuickViewImage('${imgSrc}', this)"
+                    onerror="this.onerror=null; this.src='https://placehold.co/60x60/E5E7EB/4B5563?text=N/A';"
+                >
+            `).join('');
+
 
             // Modal Content HTML
             const modalContent = `
@@ -482,9 +516,15 @@
                         </button>
                     </div>
                     <div class="flex flex-col md:flex-row md:space-x-6">
-                        <!-- Image Column -->
+                        <!-- Image Column (Gallery) -->
                         <div class="md:w-1/2 mb-4 md:mb-0">
-                            <img src="${product.image}" alt="${product.name}" class="w-full h-auto rounded-xl object-cover shadow-md" onerror="this.onerror=null; this.src='https://placehold.co/600x600/E5E7EB/4B5563?text=Image+Missing';">
+                            <!-- Main Image Display -->
+                            <img id="quickview-main-image" src="${firstImage}" alt="${product.name}" class="w-full h-auto rounded-xl object-cover shadow-lg mb-4" onerror="this.onerror=null; this.src='https://placehold.co/600x600/E5E7EB/4B5563?text=Image+Missing';">
+                            
+                            <!-- Thumbnails/Gallery Controls -->
+                            <div class="flex space-x-3 overflow-x-auto pb-2">
+                                ${thumbnailsHtml}
+                            </div>
                         </div>
                         
                         <!-- Details Column -->
