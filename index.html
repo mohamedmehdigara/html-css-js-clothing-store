@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellar Threads - Modern Apparel</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom font import and application */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        :root {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Utility class for the sticky header shadow */
+        .header-scrolled {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Cart Modal backdrop styling for better visual hierarchy */
+        #cart-modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none; /* Disable interaction when hidden */
+        }
+        .show-modal #cart-modal-backdrop {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Custom scrollbar styling for the product grid on smaller screens */
+        @media (max-width: 768px) {
+            #product-grid {
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+            }
+            .product-card {
+                scroll-snap-align: start;
+                flex: 0 0 80%; /* Show 80% of the card on mobile */
+                margin-right: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800" id="body-container">
+
+    <!-- Header & Navigation -->
+    <header id="main-header" class="sticky top-0 z-40 bg-white transition duration-300">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <a href="#" class="text-3xl font-extrabold text-indigo-700 tracking-tight">
+                Stellar Threads
+            </a>
+            
+            <!-- Cart Button -->
+            <button id="cart-button" onclick="toggleCart()" class="relative p-2 rounded-full hover:bg-gray-100 transition duration-150">
+                <span id="cart-count" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full opacity-0 transition-opacity duration-300">0</span>
+                <i data-lucide="shopping-cart" class="w-6 h-6 text-gray-600"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content: Hero Section -->
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-20">
+        <section class="text-center mb-16 p-8 bg-indigo-50 rounded-2xl shadow-lg">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
+                New Arrivals: Cosmic Comfort
+            </h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-6">
+                Explore our latest collection of sustainable and ultra-soft essentials, designed for your journey.
+            </p>
+            <button class="bg-indigo-600 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-xl hover:bg-indigo-700 transition duration-300 transform hover:scale-105">
+                Shop the Collection
+            </button>
+        </section>
+
+        <!-- Product Listing Header and Controls -->
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Featured Products</h2>
+            <div class="flex items-center space-x-4">
+                <label for="sort-by" class="text-sm font-medium text-gray-600 hidden sm:block">Sort By:</label>
+                <select id="sort-by" onchange="sortProducts(this.value)" class="p-2 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="default">Default</option>
+                    <option value="low-high">Price: Low to High</option>
+                    <option value="high-low">Price: High to Low</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <section id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 pb-4">
+            <!-- Product cards will be injected here by JavaScript -->
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <!-- Column 1: Brand Info -->
+                <div>
+                    <h4 class="text-xl font-bold mb-4 text-indigo-400">Stellar Threads</h4>
+                    <p class="text-sm text-gray-400">Sustainable style for the modern explorer.</p>
+                </div>
+                <!-- Column 2: Quick Links -->
+                <div>
+                    <h4 class="font-semibold mb-4 border-b border-indigo-700 pb-1">Shop</h4>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li><a href="#" class="hover:text-indigo-400 transition">Tops</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition">Bottoms</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition">Outerwear</a></li>
+                    </ul>
+                </div>
+                <!-- Column 3: Customer Service -->
+                <div>
+                    <h4 class="font-semibold mb-4 border-b border-indigo-700 pb-1">Help</h4>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li><a href="#" class="hover:text-indigo-400 transition">FAQ</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition">Shipping</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition">Returns</a></li>
+                    </ul>
+                </div>
+                <!-- Column 4: Contact -->
+                <div>
+                    <h4 class="font-semibold mb-4 border-b border-indigo-700 pb-1">Connect</h4>
+                    <p class="text-sm text-gray-300">Email: info@stellarthreads.com</p>
+                    <div class="flex space-x-3 mt-3">
+                        <i data-lucide="instagram" class="w-5 h-5 cursor-pointer hover:text-indigo-400 transition"></i>
+                        <i data-lucide="facebook" class="w-5 h-5 cursor-pointer hover:text-indigo-400 transition"></i>
+                        <i data-lucide="twitter" class="w-5 h-5 cursor-pointer hover:text-indigo-400 transition"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 pt-6 border-t border-gray-800 text-center text-sm text-gray-500">
+                &copy; 2025 Stellar Threads. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- Shopping Cart Modal (Hidden by Default) -->
+    <div id="cart-modal-backdrop" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm opacity-0 hidden z-50 transition duration-300">
+        <div id="cart-modal" class="fixed top-0 right-0 w-full md:w-96 h-full bg-white shadow-2xl transform translate-x-full transition duration-500 ease-in-out">
+            
+            <!-- Cart Header -->
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-2xl font-bold text-gray-900">Your Cart</h3>
+                <button onclick="toggleCart()" class="p-2 rounded-full hover:bg-gray-100 transition">
+                    <i data-lucide="x" class="w-6 h-6 text-gray-600"></i>
+                </button>
+            </div>
+
+            <!-- Cart Items Container -->
+            <div id="cart-items-container" class="h-auto overflow-y-auto max-h-[calc(100vh-200px)] p-6 space-y-4">
+                <!-- Cart items will be injected here -->
+                <p id="empty-cart-message" class="text-gray-500 text-center py-10">Your cart is empty. Start shopping!</p>
+            </div>
+
+            <!-- Cart Summary & Checkout -->
+            <div class="absolute bottom-0 w-full p-6 border-t border-gray-200 bg-white">
+                <div class="flex justify-between items-center font-bold text-xl mb-4">
+                    <span>Total:</span>
+                    <span id="cart-total-price">$0.00</span>
+                </div>
+                <button onclick="checkout()" class="w-full bg-green-600 text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-green-700 transition duration-300 shadow-lg">
+                    Proceed to Checkout
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JavaScript for Store Logic -->
+    <script>
+        // Store Product Data
+        const PRODUCTS = [
+            { id: 1, name: "The Classic Tee (Navy)", price: 29.99, image: "https://placehold.co/600x600/3B82F6/FFFFFF?text=Navy+Tee", category: "T-Shirts" },
+            { id: 2, name: "Urban Explorer Hoodie", price: 59.99, image: "https://placehold.co/600x600/4B5563/FFFFFF?text=Grey+Hoodie", category: "Hoodies" },
+            { id: 3, name: "Essential Denim (Slim Fit)", price: 79.99, image: "https://placehold.co/600x600/10B981/FFFFFF?text=Denim+Jeans", category: "Jeans" },
+            { id: 4, name: "Plaid Overshirt (Autumn)", price: 49.99, image: "https://placehold.co/600x600/F59E0B/FFFFFF?text=Plaid+Shirt", category: "Shirts" },
+            { id: 5, name: "Aero Joggers", price: 64.99, image: "https://placehold.co/600x600/8B5CF6/FFFFFF?text=Purple+Joggers", category: "Bottoms" },
+            { id: 6, name: "Minimalist Sweater", price: 54.99, image: "https://placehold.co/600x600/EF4444/FFFFFF?text=Red+Sweater", category: "Sweaters" },
+        ];
+
+        // Global State
+        let cart = JSON.parse(localStorage.getItem('stellarThreadsCart')) || [];
+        let displayedProducts = [...PRODUCTS]; // Use a copy for sorting
+
+        // --- Core Utility Functions ---
+
+        /**
+         * Finds a product by its ID.
+         * @param {number} id - The product ID.
+         * @returns {object | undefined} The product object.
+         */
+        function getProductById(id) {
+            return PRODUCTS.find(p => p.id === id);
+        }
+
+        /**
+         * Updates the localStorage and re-renders UI elements related to the cart.
+         */
+        function updateCartState() {
+            localStorage.setItem('stellarThreadsCart', JSON.stringify(cart));
+            renderCart();
+            updateCartCount();
+        }
+
+        // --- UI Rendering Functions ---
+
+        /**
+         * Renders the product cards onto the main page.
+         */
+        function renderProducts() {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = ''; // Clear previous products
+
+            displayedProducts.forEach(product => {
+                const productCard = `
+                    <div class="product-card bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-1 flex flex-col justify-between border border-gray-100">
+                        <div class="relative overflow-hidden">
+                            <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover transition duration-500 hover:scale-105" onerror="this.onerror=null; this.src='https://placehold.co/600x600/E5E7EB/4B5563?text=Image+Missing';">
+                            <span class="absolute top-2 left-2 text-xs font-medium bg-indigo-600 text-white px-2 py-1 rounded-full">${product.category}</span>
+                        </div>
+                        <div class="p-4 flex flex-col flex-grow">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-1">${product.name}</h3>
+                            <p class="text-2xl font-bold text-indigo-600 mb-3">$${product.price.toFixed(2)}</p>
+                            <button onclick="addToCart(${product.id})" 
+                                class="mt-auto w-full bg-indigo-600 text-white p-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-200 flex items-center justify-center space-x-2 shadow-md">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                                <span>Add to Cart</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', productCard);
+            });
+            // Re-initialize Lucide icons for dynamically added elements
+            lucide.createIcons();
+        }
+
+        /**
+         * Renders the current state of the shopping cart in the modal.
+         */
+        function renderCart() {
+            const itemsContainer = document.getElementById('cart-items-container');
+            const emptyMessage = document.getElementById('empty-cart-message');
+            const totalElement = document.getElementById('cart-total-price');
+            let totalPrice = 0;
+
+            itemsContainer.innerHTML = ''; // Clear items
+
+            if (cart.length === 0) {
+                emptyMessage.style.display = 'block';
+            } else {
+                emptyMessage.style.display = 'none';
+                
+                cart.forEach(item => {
+                    const product = getProductById(item.id);
+                    if (product) {
+                        const itemTotal = product.price * item.quantity;
+                        totalPrice += itemTotal;
+                        
+                        const cartItemHtml = `
+                            <div class="flex items-center space-x-4 border-b pb-4">
+                                <img src="${product.image}" alt="${product.name}" class="w-16 h-16 rounded-lg object-cover border border-gray-100" onerror="this.onerror=null; this.src='https://placehold.co/100x100/E5E7EB/4B5563?text=No+Img';">
+                                <div class="flex-grow">
+                                    <p class="text-base font-semibold text-gray-900">${product.name}</p>
+                                    <p class="text-sm text-gray-600">$${product.price.toFixed(2)} x ${item.quantity}</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="changeQuantity(${item.id}, -1)" class="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition">
+                                        <i data-lucide="minus" class="w-4 h-4"></i>
+                                    </button>
+                                    <span class="font-medium">${item.quantity}</span>
+                                    <button onclick="changeQuantity(${item.id}, 1)" class="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition">
+                                        <i data-lucide="plus" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                                <button onclick="removeFromCart(${item.id})" class="p-1 text-red-500 hover:text-red-700 transition">
+                                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        `;
+                        itemsContainer.insertAdjacentHTML('beforeend', cartItemHtml);
+                    }
+                });
+            }
+            
+            totalElement.textContent = `$${totalPrice.toFixed(2)}`;
+            lucide.createIcons(); // Re-initialize icons
+        }
+
+        /**
+         * Updates the cart badge count in the header.
+         */
+        function updateCartCount() {
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const badge = document.getElementById('cart-count');
+            badge.textContent = count;
+            badge.classList.toggle('opacity-0', count === 0);
+        }
+
+        // --- Cart Action Functions ---
+
+        /**
+         * Adds an item to the cart or increments its quantity.
+         * @param {number} id - The ID of the product to add.
+         */
+        function addToCart(id) {
+            const existingItem = cart.find(item => item.id === id);
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ id: id, quantity: 1 });
+            }
+
+            console.log(`Added product ${id}. Cart:`, cart);
+            updateCartState();
+            // Show cart modal briefly on add
+            if (document.getElementById('cart-modal-backdrop').classList.contains('hidden')) {
+                toggleCart();
+                setTimeout(toggleCart, 3000); // Close after 3 seconds
+            }
+        }
+
+        /**
+         * Changes the quantity of an item in the cart.
+         * @param {number} id - The product ID.
+         * @param {number} delta - The amount to change (e.g., 1 or -1).
+         */
+        function changeQuantity(id, delta) {
+            const itemIndex = cart.findIndex(item => item.id === id);
+
+            if (itemIndex !== -1) {
+                cart[itemIndex].quantity += delta;
+
+                if (cart[itemIndex].quantity <= 0) {
+                    // Remove item if quantity drops to zero or below
+                    cart.splice(itemIndex, 1);
+                }
+                
+                updateCartState();
+            }
+        }
+
+        /**
+         * Removes an item entirely from the cart.
+         * @param {number} id - The product ID.
+         */
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCartState();
+        }
+
+        /**
+         * Toggles the visibility of the cart modal.
+         */
+        function toggleCart() {
+            const modalBackdrop = document.getElementById('cart-modal-backdrop');
+            const modal = document.getElementById('cart-modal');
+            const body = document.getElementById('body-container');
+
+            if (modalBackdrop.classList.contains('hidden')) {
+                // Show modal
+                modalBackdrop.classList.remove('hidden');
+                setTimeout(() => {
+                    modalBackdrop.style.opacity = '1';
+                    modal.style.transform = 'translateX(0)';
+                    body.classList.add('overflow-hidden'); // Prevent background scroll
+                }, 10);
+            } else {
+                // Hide modal
+                modalBackdrop.style.opacity = '0';
+                modal.style.transform = 'translateX(100%)';
+                body.classList.remove('overflow-hidden');
+                setTimeout(() => {
+                    modalBackdrop.classList.add('hidden');
+                }, 500); // Wait for transition to complete
+            }
+        }
+
+        /**
+         * Simulates the checkout process (does not process real payment).
+         */
+        function checkout() {
+            if (cart.length === 0) {
+                alert('Your cart is empty! Add some items before checking out.');
+                return;
+            }
+            // In a real app, this would send cart data to a backend server.
+            console.log("Checkout initiated with cart:", cart);
+            alert(`Thank you for your order! Total: $${cart.reduce((sum, item) => sum + (getProductById(item.id)?.price || 0) * item.quantity, 0).toFixed(2)}. This is a frontend demo checkout.`);
+            
+            // Clear cart state
+            cart = [];
+            updateCartState();
+            toggleCart();
+        }
+        
+        // --- Sorting Functionality ---
+
+        /**
+         * Sorts the product grid based on the selected criteria.
+         * @param {string} criteria - The sorting option ('low-high', 'high-low', 'default').
+         */
+        function sortProducts(criteria) {
+            switch (criteria) {
+                case 'low-high':
+                    displayedProducts.sort((a, b) => a.price - b.price);
+                    break;
+                case 'high-low':
+                    displayedProducts.sort((a, b) => b.price - a.price);
+                    break;
+                case 'default':
+                default:
+                    // Reset to original order based on ID
+                    displayedProducts = [...PRODUCTS].sort((a, b) => a.id - b.id);
+                    break;
+            }
+            renderProducts();
+        }
+
+        // --- Initialization ---
+
+        /**
+         * Initializes the store application.
+         */
+        function initStore() {
+            renderProducts();
+            updateCartCount();
+            renderCart(); // Initialize cart view state
+
+            // Sticky Header Shadow Listener
+            window.addEventListener('scroll', () => {
+                const header = document.getElementById('main-header');
+                if (window.scrollY > 50) {
+                    header.classList.add('header-scrolled');
+                } else {
+                    header.classList.remove('header-scrolled');
+                }
+            });
+        }
+
+        // Run the initialization function when the page loads
+        window.onload = initStore;
+    </script>
+</body>
+</html>
