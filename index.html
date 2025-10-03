@@ -20,11 +20,11 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
         }
 
-        /* Cart Modal backdrop styling */
-        #cart-modal-backdrop, #wishlist-modal-backdrop {
+        /* Modal backdrop styling */
+        #cart-modal-backdrop, #wishlist-modal-backdrop, #quickview-modal-backdrop {
             transition: opacity 0.3s ease-in-out;
             pointer-events: none;
-            z-index: 50; /* Ensure modals are on top */
+            z-index: 50; 
         }
         
         /* Cart Modal (Right side) */
@@ -32,7 +32,7 @@
         .show-cart #cart-modal-backdrop { opacity: 1; pointer-events: auto; }
         .show-cart #cart-modal { transform: translateX(0); }
 
-        /* Wishlist Modal (Left side - NEW) */
+        /* Wishlist Modal (Left side) */
         #wishlist-modal { transform: translateX(-100%); }
         .show-wishlist #wishlist-modal-backdrop { opacity: 1; pointer-events: auto; }
         .show-wishlist #wishlist-modal { transform: translateX(0); }
@@ -53,6 +53,32 @@
                 margin-right: 1rem;
             }
         }
+        
+        /* FIX: NEW: Review Star Rating System CSS for reliable interaction */
+        .rating-container {
+            display: inline-flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+        }
+        .rating-container input {
+            display: none;
+        }
+        .rating-container label {
+            color: #D1D5DB; /* gray-300 */
+            cursor: pointer;
+            transition: color 0.2s;
+            font-size: 24px;
+            line-height: 1;
+        }
+        /* Color the star and all stars before it on hover */
+        .rating-container label:hover,
+        .rating-container label:hover ~ label {
+            color: #FBBF24; /* yellow-500 */
+        }
+        /* Color the star and all stars before it when checked */
+        .rating-container input:checked ~ label {
+            color: #FBBF24;
+        }
     </style>
 </head>
 <!-- Apply dark class dynamically to enable dark mode -->
@@ -68,12 +94,12 @@
             <!-- Action Buttons -->
             <div class="flex space-x-3 items-center">
                 
-                <!-- Dark Mode Toggle (NEW) -->
+                <!-- Dark Mode Toggle -->
                 <button id="dark-mode-toggle" onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-150">
                     <i id="dark-mode-icon" data-lucide="moon" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                 </button>
                 
-                <!-- Wishlist Button (NEW) -->
+                <!-- Wishlist Button -->
                 <button id="wishlist-button" onclick="toggleWishlistModal()" class="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-150">
                     <span id="wishlist-count" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full opacity-0 transition-opacity duration-300">0</span>
                     <i data-lucide="heart" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
@@ -138,6 +164,16 @@
         <section id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 pb-4">
             <!-- Product cards will be injected here by JavaScript -->
         </section>
+
+        <!-- Recently Viewed Products Section (NEW) -->
+        <section id="recently-viewed-section" class="mt-20 hidden">
+            <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6 border-b pb-2 border-gray-200 dark:border-gray-700">
+                Recently Viewed
+            </h2>
+            <div id="recently-viewed-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                <!-- Recently viewed cards will be injected here -->
+            </div>
+        </section>
     </main>
 
     <!-- Footer -->
@@ -149,10 +185,31 @@
                     <h4 class="text-xl font-bold mb-4 text-indigo-400">Stellar Threads</h4>
                     <p class="text-sm text-gray-400">Sustainable style for the modern explorer.</p>
                 </div>
+                <!-- Column 2: Quick Links -->
+                <div>
+                    <h4 class="font-semibold mb-4 border-b border-indigo-700 pb-1">Quick Links</h4>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li><a href="#" class="hover:text-indigo-400 transition">About Us</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition">Shipping & Returns</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition">Size Guide</a></li>
+                    </ul>
+                </div>
+                <!-- Column 3: Newsletter Sign-up Simulation (NEW) -->
+                <div class="col-span-2 md:col-span-1">
+                    <h4 class="font-semibold mb-4 border-b border-indigo-700 pb-1">Get 15% Off</h4>
+                    <p class="text-sm text-gray-300 mb-3">Sign up for exclusive offers and updates.</p>
+                    <div class="flex flex-col space-y-2">
+                        <input type="email" id="newsletter-email" placeholder="Your email address" class="p-3 rounded-lg text-gray-900 focus:ring-indigo-500 focus:border-indigo-500">
+                        <button onclick="simulateNewsletterSignup()" class="bg-indigo-600 text-white p-3 rounded-lg font-medium hover:bg-indigo-700 transition shadow-md">
+                            Subscribe
+                        </button>
+                    </div>
+                    <p id="newsletter-message" class="text-sm mt-2 font-medium"></p>
+                </div>
                 <!-- Column 4: Contact -->
                 <div>
                     <h4 class="font-semibold mb-4 border-b border-indigo-700 pb-1">Connect</h4>
-                    <p class="text-sm text-gray-300">Email: info@stellarthreads.com</p>
+                    <p class="text-sm text-gray-400">Email: info@stellarthreads.com</p>
                     <div class="flex space-x-3 mt-3">
                         <i data-lucide="instagram" class="w-5 h-5 cursor-pointer hover:text-indigo-400 transition"></i>
                         <i data-lucide="facebook" class="w-5 h-5 cursor-pointer hover:text-indigo-400 transition"></i>
@@ -166,21 +223,16 @@
         </div>
     </footer>
     
-    <!-- Wishlist Modal (NEW - Left Side) -->
+    <!-- Wishlist Modal (Left Side) -->
     <div id="wishlist-modal-backdrop" onclick="toggleWishlistModal()" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm opacity-0 hidden transition duration-300">
         <div id="wishlist-modal" onclick="event.stopPropagation()" class="fixed top-0 left-0 w-full md:w-96 h-full bg-white dark:bg-gray-800 shadow-2xl transform transition duration-500 ease-in-out">
-            
-            <!-- Wishlist Header -->
             <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                 <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Your Wishlist</h3>
                 <button onclick="toggleWishlistModal()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                     <i data-lucide="x" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                 </button>
             </div>
-
-            <!-- Wishlist Items Container -->
             <div id="wishlist-items-container" class="h-full overflow-y-auto max-h-[calc(100vh-80px)] p-6 space-y-4">
-                <!-- Wishlist items will be injected here -->
                 <p id="empty-wishlist-message" class="text-gray-500 text-center py-10">Your wishlist is empty. Save items you love!</p>
             </div>
         </div>
@@ -190,22 +242,15 @@
     <!-- Shopping Cart Modal (Right Side) -->
     <div id="cart-modal-backdrop" onclick="toggleCart()" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm opacity-0 hidden transition duration-300">
         <div id="cart-modal" onclick="event.stopPropagation()" class="fixed top-0 right-0 w-full md:w-96 h-full bg-white dark:bg-gray-800 shadow-2xl transform transition duration-500 ease-in-out">
-            
-            <!-- Cart Header -->
             <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                 <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Your Cart</h3>
                 <button onclick="toggleCart()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                     <i data-lucide="x" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                 </button>
             </div>
-
-            <!-- Cart Items Container -->
             <div id="cart-items-container" class="h-auto overflow-y-auto max-h-[calc(100vh-350px)] p-6 space-y-4">
-                <!-- Cart items will be injected here -->
                 <p id="empty-cart-message" class="text-gray-500 text-center py-10">Your cart is empty. Start shopping!</p>
             </div>
-
-            <!-- Coupon Input -->
             <div class="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
                 <label for="coupon-code" class="text-sm font-semibold text-gray-700 dark:text-gray-200 block mb-2">Have a Coupon Code?</label>
                 <div class="flex space-x-2">
@@ -214,9 +259,6 @@
                 </div>
                 <p id="coupon-message" class="text-sm mt-2 font-medium"></p>
             </div>
-
-
-            <!-- Cart Summary & Checkout -->
             <div class="absolute bottom-0 w-full p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                 <div id="cart-summary-totals">
                     <!-- Totals (Subtotal, Discount, Total) will be injected here by JS -->
@@ -231,39 +273,44 @@
 
     <!-- Quick View Modal -->
     <div id="quickview-modal-backdrop" onclick="closeQuickView()" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm opacity-0 hidden transition duration-300 flex items-center justify-center p-4">
-        <div id="quickview-modal" onclick="event.stopPropagation()" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform scale-90 opacity-0 transition duration-300 ease-in-out">
+        <div id="quickview-modal" onclick="event.stopPropagation()" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto transform scale-90 opacity-0 transition duration-300 ease-in-out">
             <!-- Modal content will be injected here by openQuickView() -->
         </div>
     </div>
 
     <!-- JavaScript for Store Logic -->
     <script>
-        // Store Product Data - Added 'gallery' array for multiple product views
+        // Store Product Data - Added rating/review fields
         const PRODUCTS = [
-            { id: 1, name: "The Classic Tee (Navy)", price: 29.99, image: "https://placehold.co/600x600/3B82F6/FFFFFF?text=Navy+Tee+FRONT", category: "T-Shirts", 
+            { id: 1, name: "The Classic Tee (Navy)", price: 29.99, rating: 4.8, reviewsCount: 94, image: "https://placehold.co/600x600/3B82F6/FFFFFF?text=Navy+Tee+FRONT", category: "T-Shirts", 
               gallery: ["https://placehold.co/600x600/3B82F6/FFFFFF?text=Navy+Tee+FRONT", "https://placehold.co/600x600/2563EB/FFFFFF?text=Navy+Tee+BACK", "https://placehold.co/600x600/1D4ED8/FFFFFF?text=Navy+Tee+DETAIL"] },
-            { id: 2, name: "Urban Explorer Hoodie", price: 59.99, image: "https://placehold.co/600x600/4B5563/FFFFFF?text=Grey+Hoodie+FRONT", category: "Hoodies", 
+            { id: 2, name: "Urban Explorer Hoodie", price: 59.99, rating: 4.5, reviewsCount: 42, image: "https://placehold.co/600x600/4B5563/FFFFFF?text=Grey+Hoodie+FRONT", category: "Hoodies", 
               gallery: ["https://placehold.co/600x600/4B5563/FFFFFF?text=Grey+Hoodie+FRONT", "https://placehold.co/600x600/374151/FFFFFF?text=Grey+Hoodie+HOOD", "https://placehold.co/600x600/1F2937/FFFFFF?text=Grey+Hoodie+POCKET"] },
-            { id: 3, name: "Essential Denim (Slim Fit)", price: 79.99, image: "https://placehold.co/600x600/10B981/FFFFFF?text=Denim+Jeans", category: "Jeans" },
-            { id: 4, name: "Plaid Overshirt (Autumn)", price: 49.99, image: "https://placehold.co/600x600/F59E0B/FFFFFF?text=Plaid+Shirt", category: "Shirts" },
-            { id: 5, name: "Aero Joggers", price: 64.99, image: "https://placehold.co/600x600/8B5CF6/FFFFFF?text=Purple+Joggers", category: "Bottoms" },
-            { id: 6, name: "Minimalist Sweater", price: 54.99, image: "https://placehold.co/600x600/EF4444/FFFFFF?text=Red+Sweater", category: "Sweaters" },
+            { id: 3, name: "Essential Denim (Slim Fit)", price: 79.99, rating: 4.2, reviewsCount: 120, image: "https://placehold.co/600x600/10B981/FFFFFF?text=Denim+Jeans", category: "Jeans" },
+            { id: 4, name: "Plaid Overshirt (Autumn)", price: 49.99, rating: 4.9, reviewsCount: 55, image: "https://placehold.co/600x600/F59E0B/FFFFFF?text=Plaid+Shirt", category: "Shirts" },
+            { id: 5, name: "Aero Joggers", price: 64.99, rating: 3.9, reviewsCount: 30, image: "https://placehold.co/600x600/8B5CF6/FFFFFF?text=Purple+Joggers", category: "Bottoms" },
+            { id: 6, name: "Minimalist Sweater", price: 54.99, rating: 4.7, reviewsCount: 78, image: "https://placehold.co/600x600/EF4444/FFFFFF?text=Red+Sweater", category: "Sweaters" },
         ];
         
         // Available Coupon Codes
         const VALID_COUPONS = {
-            'GEMINI20': 0.20, // 20% off
-            'SAVE10': 0.10,   // 10% off
-            'NEWUSER': 0.15,  // 15% off
+            'GEMINI20': 0.20, 
+            'SAVE10': 0.10,   
+            'NEWUSER': 0.15,  
         };
 
-        // Global State
+        // Global State (persisted with localStorage)
         let cart = JSON.parse(localStorage.getItem('stellarThreadsCart')) || [];
-        let wishlist = JSON.parse(localStorage.getItem('stellarThreadsWishlist')) || []; // NEW: Wishlist State
-        let appliedCoupon = { code: null, discountPercentage: 0, message: '' }; 
+        let wishlist = JSON.parse(localStorage.getItem('stellarThreadsWishlist')) || [];
+        let recentlyViewedIds = JSON.parse(localStorage.getItem('recentlyViewedIds')) || []; 
 
-        const initialProducts = [...PRODUCTS].sort((a, b) => a.id - b.id);
-        let displayedProducts = [...initialProducts]; 
+        // Global State (session only)
+        let appliedCoupon = { code: null, discountPercentage: 0, message: '' }; 
+        let displayedProducts = [...PRODUCTS]; 
+        // Simulated reviews storage, just for the session. Key: productId, Value: array of review objects.
+        let sessionReviews = {}; 
+
+        const MAX_RECENTLY_VIEWED = 5;
 
         // --- Core Utility Functions ---
 
@@ -284,26 +331,226 @@
         function checkIfInWishlist(id) {
             return wishlist.some(item => item.id === id);
         }
-
+        
         /**
-         * Updates the localStorage and re-renders UI elements related to the cart.
+         * Generates star icons HTML based on a rating value.
+         * @param {number} rating - The rating value (0-5).
+         * @returns {string} HTML string of Lucide star icons.
          */
+        function generateRatingStars(rating) {
+            const fullStars = Math.floor(rating);
+            // Check for half star (e.g., 4.2 -> 4, 4.5 -> 4.5, 4.8 -> 5)
+            const halfStar = rating % 1 >= 0.25 && rating % 1 <= 0.75; 
+            const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+            
+            let starsHtml = '';
+
+            // Full stars
+            for (let i = 0; i < fullStars; i++) {
+                starsHtml += '<i data-lucide="star" class="w-4 h-4 fill-yellow-500 text-yellow-500"></i>';
+            }
+            // Half star
+            if (halfStar) {
+                starsHtml += '<i data-lucide="star-half" class="w-4 h-4 fill-yellow-500 text-yellow-500"></i>';
+            }
+            // Empty stars
+            for (let i = 0; i < emptyStars; i++) {
+                starsHtml += '<i data-lucide="star" class="w-4 h-4 text-gray-300 dark:text-gray-600"></i>';
+            }
+
+            return starsHtml;
+        }
+
+        // --- State Management ---
+
         function updateCartState() {
             localStorage.setItem('stellarThreadsCart', JSON.stringify(cart));
             renderCart();
             updateCartCount();
         }
 
-        /**
-         * Updates the localStorage and re-renders UI elements related to the wishlist.
-         */
-        function updateWishlistState() { // NEW
+        function updateWishlistState() { 
             localStorage.setItem('stellarThreadsWishlist', JSON.stringify(wishlist));
             renderWishlist();
             updateWishlistCount();
-            renderProducts(); // Re-render product cards to update heart icons
+            renderProducts(); 
         }
 
+        /**
+         * Adds a product ID to the recently viewed list. (NEW)
+         * @param {number} id - The product ID.
+         */
+        function addRecentlyViewed(id) {
+            // Remove existing item to ensure it's at the start
+            recentlyViewedIds = recentlyViewedIds.filter(itemId => itemId !== id);
+            
+            // Add to the front
+            recentlyViewedIds.unshift(id);
+            
+            // Limit the length
+            if (recentlyViewedIds.length > MAX_RECENTLY_VIEWED) {
+                recentlyViewedIds = recentlyViewedIds.slice(0, MAX_RECENTLY_VIEWED);
+            }
+
+            localStorage.setItem('recentlyViewedIds', JSON.stringify(recentlyViewedIds));
+            renderRecentlyViewed();
+        }
+
+
+        // --- Cart & Wishlist Logic ---
+
+        function toggleWishlist(id) {
+            const index = wishlist.findIndex(item => item.id === id);
+            
+            if (index > -1) {
+                // Remove from wishlist
+                wishlist.splice(index, 1);
+            } else {
+                // Add to wishlist
+                wishlist.push({ id });
+            }
+            updateWishlistState();
+        }
+
+        function moveToCart(id) {
+            addToCart(id, 1);
+            
+            // Remove from wishlist
+            wishlist = wishlist.filter(item => item.id !== id);
+            updateWishlistState();
+
+            // Open the cart modal if it's closed
+            const body = document.getElementById('body-container');
+            if (!body.classList.contains('show-cart')) {
+                toggleCart();
+            }
+        }
+
+        function toggleWishlistModal() {
+            const modalBackdrop = document.getElementById('wishlist-modal-backdrop');
+            const body = document.getElementById('body-container');
+
+            if (body.classList.contains('show-cart')) toggleCart();
+            if (body.classList.contains('show-quickview')) closeQuickView();
+            
+            if (modalBackdrop.classList.contains('hidden')) {
+                modalBackdrop.classList.remove('hidden');
+                setTimeout(() => {
+                    body.classList.add('show-wishlist');
+                    body.classList.add('overflow-hidden');
+                }, 10);
+            } else {
+                body.classList.remove('show-wishlist');
+                body.classList.remove('overflow-hidden');
+                setTimeout(() => {
+                    modalBackdrop.classList.add('hidden');
+                }, 500);
+            }
+        }
+
+        function addToCart(id, quantity = 1) {
+            const existingItem = cart.find(item => item.id === id);
+            
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                cart.push({ id, quantity });
+            }
+            updateCartState();
+        }
+
+        function changeQuantity(id, change) {
+            const existingItem = cart.find(item => item.id === id);
+            
+            if (existingItem) {
+                existingItem.quantity += change;
+                if (existingItem.quantity <= 0) {
+                    removeFromCart(id);
+                }
+            }
+            updateCartState();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCartState();
+        }
+
+        /**
+         * FIX: Adds a simulation for the checkout process.
+         */
+        function checkout() {
+            if (cart.length === 0) {
+                console.warn('Checkout failed: Cart is empty.');
+                // In a real app, display a message box/modal here instead of alert/console.
+                return;
+            }
+            
+            console.log('Checkout initiated for:', cart);
+            
+            // Simulating a successful purchase
+            cart = []; // Empty the cart
+            appliedCoupon = { code: null, discountPercentage: 0, message: '' };
+            updateCartState();
+            
+            // Close the cart modal
+            toggleCart();
+            
+            // Show a success message simulation
+            console.log('Transaction Successful! Cart emptied and order placed.');
+        }
+
+        function applyCoupon() {
+            const codeInput = document.getElementById('coupon-code');
+            const code = codeInput.value.toUpperCase().trim();
+            const messageElement = document.getElementById('coupon-message');
+
+            if (VALID_COUPONS[code]) {
+                appliedCoupon = { 
+                    code: code, 
+                    discountPercentage: VALID_COUPONS[code], 
+                    message: `Success! ${code} applied for ${VALID_COUPONS[code] * 100}% off.`
+                };
+            } else {
+                appliedCoupon = { 
+                    code: null, 
+                    discountPercentage: 0, 
+                    message: `Coupon code "${code}" is invalid or expired.`
+                };
+            }
+            renderCart(); // Re-render to show updated totals and coupon state
+        }
+
+        function removeCoupon() {
+             appliedCoupon = { code: null, discountPercentage: 0, message: 'Coupon removed.' };
+             document.getElementById('coupon-code').value = '';
+             renderCart();
+        }
+
+        // --- Filtering and Sorting Logic ---
+
+        function applyFilters() {
+            const searchQuery = document.getElementById('product-search').value.toLowerCase();
+            const categoryFilter = document.getElementById('category-filter').value;
+            const sortBy = document.getElementById('sort-by').value;
+
+            let filtered = PRODUCTS.filter(product => {
+                const matchesSearch = product.name.toLowerCase().includes(searchQuery);
+                const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
+                return matchesSearch && matchesCategory;
+            });
+
+            // Sorting logic
+            if (sortBy === 'low-high') {
+                filtered.sort((a, b) => a.price - b.price);
+            } else if (sortBy === 'high-low') {
+                filtered.sort((a, b) => b.price - a.price);
+            }
+            
+            displayedProducts = filtered;
+            renderProducts();
+        }
+        
         // --- UI Rendering Functions ---
 
         /**
@@ -321,6 +568,7 @@
             displayedProducts.forEach(product => {
                 const isWished = checkIfInWishlist(product.id);
                 const heartColor = isWished ? 'fill-red-500 text-red-500' : 'text-gray-500';
+                const ratingStars = generateRatingStars(product.rating);
 
                 const productCard = `
                     <div class="product-card bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-1 flex flex-col justify-between border border-gray-100 dark:border-gray-700">
@@ -328,7 +576,7 @@
                             <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover transition duration-500 hover:scale-105" onerror="this.onerror=null; this.src='https://placehold.co/600x600/E5E7EB/4B5563?text=Image+Missing';">
                             <span class="absolute top-2 left-2 text-xs font-medium bg-indigo-600 text-white px-2 py-1 rounded-full">${product.category}</span>
                             
-                            <!-- Wishlist Toggle Button (NEW) -->
+                            <!-- Wishlist Toggle Button -->
                             <button onclick="toggleWishlist(${product.id})" class="absolute top-2 right-2 p-2 rounded-full bg-white dark:bg-gray-900/80 backdrop-blur-sm hover:bg-red-100 dark:hover:bg-red-900/50 transition shadow-md">
                                 <i data-lucide="heart" class="w-5 h-5 ${heartColor}"></i>
                             </button>
@@ -336,9 +584,13 @@
                         </div>
                         <div class="p-4 flex flex-col flex-grow">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">${product.name}</h3>
+                            <div class="flex items-center space-x-2 mb-2">
+                                <div class="flex">${ratingStars}</div>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">(${product.reviewsCount})</span>
+                            </div>
                             <p class="text-2xl font-bold text-indigo-600 mb-3">$${product.price.toFixed(2)}</p>
                             
-                            <!-- Updated buttons for Quick View and Add to Cart -->
+                            <!-- Buttons -->
                             <div class="mt-auto flex space-x-2">
                                 <button onclick="openQuickView(${product.id})" 
                                     class="w-1/2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 p-3 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-200 flex items-center justify-center space-x-1 shadow-sm text-sm">
@@ -356,10 +608,67 @@
                 `;
                 grid.insertAdjacentHTML('beforeend', productCard);
             });
-            // Re-initialize Lucide icons for dynamically added elements
             lucide.createIcons();
         }
+        
+        /**
+         * Renders the Recently Viewed Products section.
+         */
+        function renderRecentlyViewed() {
+            const section = document.getElementById('recently-viewed-section');
+            const grid = document.getElementById('recently-viewed-grid');
+            grid.innerHTML = ''; 
 
+            const recentProducts = recentlyViewedIds
+                .map(id => getProductById(id))
+                .filter(p => p !== undefined);
+
+            if (recentProducts.length === 0) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            section.classList.remove('hidden');
+
+            recentProducts.forEach(product => {
+                const productCard = `
+                    <div onclick="openQuickView(${product.id})" class="cursor-pointer bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition duration-200 transform hover:scale-[1.02] border border-gray-100 dark:border-gray-700">
+                        <img src="${product.image}" alt="${product.name}" class="w-full h-32 object-cover" onerror="this.onerror=null; this.src='https://placehold.co/400x400/E5E7EB/4B5563?text=N/A';">
+                        <div class="p-3">
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white truncate">${product.name}</h3>
+                            <p class="text-lg font-bold text-indigo-500">$${product.price.toFixed(2)}</p>
+                        </div>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', productCard);
+            });
+        }
+
+        /**
+         * Toggles the visibility of the cart modal.
+         */
+        function toggleCart() {
+            const modalBackdrop = document.getElementById('cart-modal-backdrop');
+            const body = document.getElementById('body-container');
+            
+            if (body.classList.contains('show-wishlist')) toggleWishlistModal();
+            if (body.classList.contains('show-quickview')) closeQuickView();
+
+            if (modalBackdrop.classList.contains('hidden')) {
+                modalBackdrop.classList.remove('hidden');
+                setTimeout(() => {
+                    body.classList.add('show-cart');
+                    body.classList.add('overflow-hidden'); 
+                }, 10);
+            } else {
+                body.classList.remove('show-cart');
+                body.classList.remove('overflow-hidden');
+                setTimeout(() => {
+                    modalBackdrop.classList.add('hidden');
+                }, 500);
+            }
+        }
+        
         /**
          * Renders the current state of the shopping cart in the modal.
          */
@@ -449,7 +758,7 @@
             totalSummary.innerHTML = totalsHtml;
             
             // Update Coupon UI State
-            if (appliedCoupon.code) {
+            if (appliedCoupon.code && appliedCoupon.discountPercentage > 0) {
                 couponInput.value = appliedCoupon.code;
                 couponInput.disabled = true;
                 applyBtn.disabled = true;
@@ -463,14 +772,14 @@
                 applyBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
                 applyBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
                 couponMsg.textContent = appliedCoupon.message;
-                couponMsg.className = 'text-sm mt-2 font-medium text-red-500';
+                couponMsg.className = 'text-sm mt-2 font-medium ' + (appliedCoupon.message.includes('Success') ? 'text-green-600' : 'text-red-500');
             }
 
             lucide.createIcons(); // Re-initialize icons
         }
 
         /**
-         * Renders the current state of the wishlist in its modal. (NEW)
+         * Renders the current state of the wishlist in its modal.
          */
         function renderWishlist() {
             const itemsContainer = document.getElementById('wishlist-items-container');
@@ -523,7 +832,7 @@
         }
 
         /**
-         * Updates the wishlist badge count in the header. (NEW)
+         * Updates the wishlist badge count in the header.
          */
         function updateWishlistCount() {
             const count = wishlist.length;
@@ -531,8 +840,6 @@
             badge.textContent = count;
             badge.classList.toggle('opacity-0', count === 0);
         }
-
-        // --- Dark Mode Functions (NEW) ---
 
         /**
          * Toggles between light and dark mode and persists the preference.
@@ -546,7 +853,6 @@
             
             localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
 
-            // Update icon
             if (isDark) {
                 icon.setAttribute('data-lucide', 'sun');
             } else {
@@ -571,204 +877,79 @@
                 icon.setAttribute('data-lucide', 'moon');
             }
         }
-
-        // --- Wishlist Action Functions (NEW) ---
-
-        /**
-         * Adds or removes a product from the wishlist.
-         * @param {number} id - The product ID.
-         */
-        function toggleWishlist(id) {
-            const itemIndex = wishlist.findIndex(item => item.id === id);
-
-            if (itemIndex !== -1) {
-                // Remove from wishlist
-                wishlist.splice(itemIndex, 1);
-            } else {
-                // Add to wishlist
-                wishlist.push({ id: id });
-            }
-
-            updateWishlistState();
-        }
-
-        /**
-         * Moves an item from the wishlist to the cart.
-         * @param {number} id - The product ID.
-         */
-        function moveToCart(id) {
-            // 1. Add to Cart
-            addToCart(id); 
-            // 2. Remove from Wishlist
-            wishlist = wishlist.filter(item => item.id !== id);
-            
-            // 3. Update states
-            updateWishlistState();
-            // Since addToCart already calls updateCartState, we only need to update wishlist state.
-        }
-
-        /**
-         * Toggles the visibility of the wishlist modal.
-         */
-        function toggleWishlistModal() {
-            const modalBackdrop = document.getElementById('wishlist-modal-backdrop');
-            const body = document.getElementById('body-container');
-
-            // Close cart/quickview first if open
-            if (body.classList.contains('show-cart')) toggleCart();
-            if (body.classList.contains('show-quickview')) closeQuickView();
-            
-            if (modalBackdrop.classList.contains('hidden')) {
-                modalBackdrop.classList.remove('hidden');
-                setTimeout(() => {
-                    body.classList.add('show-wishlist');
-                    body.classList.add('overflow-hidden');
-                }, 10);
-            } else {
-                body.classList.remove('show-wishlist');
-                body.classList.remove('overflow-hidden');
-                setTimeout(() => {
-                    modalBackdrop.classList.add('hidden');
-                }, 500);
-            }
-        }
-
-        // --- Coupon Action Functions ---
-
-        /**
-         * Applies the coupon code entered by the user.
-         */
-        function applyCoupon() {
-            const inputElement = document.getElementById('coupon-code');
-            const code = inputElement.value.toUpperCase().trim();
-
-            if (!code) {
-                appliedCoupon = { code: null, discountPercentage: 0, message: 'Please enter a coupon code.' };
-            } else if (VALID_COUPONS[code]) {
-                const discount = VALID_COUPONS[code];
-                appliedCoupon = { 
-                    code: code, 
-                    discountPercentage: discount, 
-                    message: `Coupon '${code}' applied! You save ${(discount * 100)}% on your order.`
-                };
-            } else {
-                appliedCoupon = { code: null, discountPercentage: 0, message: `Invalid coupon code: '${code}'.` };
-            }
-
-            renderCart(); 
-        }
-
-        /**
-         * Removes the currently applied coupon.
-         */
-        function removeCoupon() {
-            appliedCoupon = { code: null, discountPercentage: 0, message: '' };
-            document.getElementById('coupon-code').value = '';
-            renderCart();
-        }
-
-        // --- Cart Action Functions ---
-
-        /**
-         * Adds an item to the cart or increments its quantity.
-         * @param {number} id - The ID of the product to add.
-         */
-        function addToCart(id) {
-            const existingItem = cart.find(item => item.id === id);
-
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                cart.push({ id: id, quantity: 1 });
-            }
-
-            updateCartState();
-            // Show cart modal briefly on add
-            const modalBackdrop = document.getElementById('cart-modal-backdrop');
-            if (modalBackdrop.classList.contains('hidden')) {
-                toggleCart();
-                setTimeout(toggleCart, 3000); 
-            }
-        }
-
-        /**
-         * Changes the quantity of an item in the cart.
-         */
-        function changeQuantity(id, delta) {
-            const itemIndex = cart.findIndex(item => item.id === id);
-
-            if (itemIndex !== -1) {
-                cart[itemIndex].quantity += delta;
-
-                if (cart[itemIndex].quantity <= 0) {
-                    cart.splice(itemIndex, 1);
-                }
-                
-                updateCartState();
-            }
-        }
-
-        /**
-         * Removes an item entirely from the cart.
-         */
-        function removeFromCart(id) {
-            cart = cart.filter(item => item.id !== id);
-            updateCartState();
-        }
-
-        /**
-         * Toggles the visibility of the cart modal.
-         */
-        function toggleCart() {
-            const modalBackdrop = document.getElementById('cart-modal-backdrop');
-            const body = document.getElementById('body-container');
-            const modal = document.getElementById('cart-modal');
-            
-            // Close wishlist/quickview first if open
-            if (body.classList.contains('show-wishlist')) toggleWishlistModal();
-            if (body.classList.contains('show-quickview')) closeQuickView();
-
-
-            if (modalBackdrop.classList.contains('hidden')) {
-                // Show modal
-                modalBackdrop.classList.remove('hidden');
-                setTimeout(() => {
-                    body.classList.add('show-cart');
-                    body.classList.add('overflow-hidden'); 
-                }, 10);
-            } else {
-                // Hide modal
-                body.classList.remove('show-cart');
-                body.classList.remove('overflow-hidden');
-                setTimeout(() => {
-                    modalBackdrop.classList.add('hidden');
-                }, 500);
-            }
-        }
-
-        /**
-         * Simulates the checkout process.
-         */
-        function checkout() {
-            const subtotal = cart.reduce((sum, item) => sum + (getProductById(item.id)?.price || 0) * item.quantity, 0);
-            const finalTotal = subtotal * (1 - appliedCoupon.discountPercentage);
-            
-            const message = cart.length === 0 
-                ? 'Your cart is empty! Add some items before checking out.'
-                : `Thank you for your order! Final Total: $${finalTotal.toFixed(2)}.\nThe cart has been cleared.`;
-
-            window.alert(message); 
-            
-            if (cart.length > 0) {
-                // Clear cart state
-                cart = [];
-                appliedCoupon = { code: null, discountPercentage: 0, message: '' };
-                updateCartState();
-                toggleCart();
-            }
-        }
         
-        // --- Quick View Image Gallery Functions ---
+        /**
+         * Simulates a newsletter sign-up and provides client-side feedback.
+         */
+        function simulateNewsletterSignup() {
+            const emailInput = document.getElementById('newsletter-email');
+            const messageElement = document.getElementById('newsletter-message');
+            const email = emailInput.value.trim();
+
+            messageElement.textContent = ''; // Clear previous message
+            messageElement.classList.remove('text-red-500', 'text-green-500');
+
+            if (!email || !email.includes('@') || !email.includes('.')) {
+                messageElement.textContent = 'Please enter a valid email address.';
+                messageElement.classList.add('text-red-500');
+                return;
+            }
+
+            // Simulate server response delay
+            setTimeout(() => {
+                messageElement.textContent = `Success! Thank you for subscribing. A 15% off coupon was sent to ${email}.`;
+                messageElement.classList.add('text-green-500');
+                emailInput.value = '';
+            }, 500);
+        }
+
+
+        // --- Quick View Modal & Review Functions ---
+
+        /**
+         * Submits a simulated review for the product.
+         * @param {number} productId - The ID of the product being reviewed.
+         */
+        function submitReview(productId) {
+            const name = document.getElementById(`review-name-${productId}`).value.trim();
+            const comment = document.getElementById(`review-comment-${productId}`).value.trim();
+            // Read the value from the checked radio button within the specific product's scope
+            const ratingInput = document.querySelector(`input[name="review-rating-${productId}"]:checked`);
+            const rating = ratingInput ? parseInt(ratingInput.value, 10) : null;
+            const messageEl = document.getElementById(`review-message-${productId}`);
+
+            messageEl.textContent = '';
+            messageEl.className = 'text-sm mt-2 font-medium';
+
+            if (!name || !comment || !rating) {
+                messageEl.textContent = 'Please fill out your name, comment, and select a star rating.';
+                messageEl.classList.add('text-red-500');
+                return;
+            }
+
+            const newReview = {
+                id: crypto.randomUUID(), // Unique ID for session
+                name: name,
+                comment: comment,
+                rating: rating,
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            };
+
+            // Store review locally for the session
+            if (!sessionReviews[productId]) {
+                sessionReviews[productId] = [];
+            }
+            sessionReviews[productId].unshift(newReview); // Add to start
+
+            // Simulate success
+            messageEl.textContent = 'Review submitted successfully! Thank you for your feedback.';
+            messageEl.classList.add('text-green-600');
+            
+            // Re-render the modal to show the new review and clear the form
+            openQuickView(productId, { skipHistory: true });
+        }
+
+
         function switchQuickViewImage(newSrc, element) {
             document.getElementById('quickview-main-image').src = newSrc;
             const thumbnails = document.querySelectorAll('.quickview-thumbnail');
@@ -778,9 +959,14 @@
             element.classList.add('ring-4', 'ring-indigo-500', 'ring-offset-2');
         }
 
-        function openQuickView(id) {
+        function openQuickView(id, options = {}) {
             const product = getProductById(id);
             if (!product) return;
+
+            // Track view
+            if (!options.skipHistory) {
+                addRecentlyViewed(id);
+            }
 
             // Close other modals
             const body = document.getElementById('body-container');
@@ -800,6 +986,28 @@
                 >
             `).join('');
 
+            const staticReviews = [
+                { id: 101, name: "Gemini", comment: "The comfort level is truly cosmic! Highly recommend this fabric.", rating: 5, date: "Sept 1, 2025" },
+                { id: 102, name: "Orion", comment: "Fits perfectly and looks great. Wish it came in more colors.", rating: 4, date: "Aug 28, 2025" }
+            ];
+            
+            // Combine static and session reviews
+            const combinedReviews = [...(sessionReviews[id] || []), ...staticReviews];
+            
+            const reviewsHtml = combinedReviews.map(review => `
+                <div class="border-t pt-4 dark:border-gray-700">
+                    <div class="flex items-center space-x-2 mb-1">
+                        <div class="flex">${generateRatingStars(review.rating)}</div>
+                        <span class="text-sm font-semibold text-gray-900 dark:text-white">${review.name}</span>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">${review.date}</p>
+                    <p class="text-gray-700 dark:text-gray-300">${review.comment}</p>
+                </div>
+            `).join('');
+
+            const ratingStars = generateRatingStars(product.rating);
+
+
             const modalContent = `
                 <div class="p-6">
                     <div class="flex justify-end mb-4">
@@ -807,9 +1015,17 @@
                             <i data-lucide="x" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                         </button>
                     </div>
-                    <div class="flex flex-col md:flex-row md:space-x-6">
-                        <!-- Image Column (Gallery) -->
-                        <div class="md:w-1/2 mb-4 md:mb-0">
+                    
+                    <!-- Breadcrumbs (Simulated) -->
+                    <div class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        <a href="#" class="hover:text-indigo-600">Home</a> > 
+                        <span class="hover:text-indigo-600 cursor-pointer" onclick="document.getElementById('category-filter').value='${product.category}'; applyFilters(); closeQuickView();">${product.category}</span> > 
+                        <span class="font-medium text-gray-700 dark:text-gray-200">${product.name}</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Left Column: Image Gallery -->
+                        <div class="order-1">
                             <!-- Main Image Display -->
                             <img id="quickview-main-image" src="${firstImage}" alt="${product.name}" class="w-full h-auto rounded-xl object-cover shadow-lg mb-4" onerror="this.onerror=null; this.src='https://placehold.co/600x600/E5E7EB/4B5563?text=Image+Missing';">
                             
@@ -819,11 +1035,19 @@
                             </div>
                         </div>
                         
-                        <!-- Details Column -->
-                        <div class="md:w-1/2 flex flex-col justify-between">
+                        <!-- Right Column: Details & Actions -->
+                        <div class="order-2 flex flex-col justify-between">
                             <div>
                                 <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">${product.name}</h3>
                                 <span class="text-sm font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full">${product.category}</span>
+                                
+                                <!-- Rating Display -->
+                                <div class="flex items-center space-x-2 my-4">
+                                    <div class="flex">${ratingStars}</div>
+                                    <span class="text-sm font-medium text-gray-600 dark:text-gray-300">${product.rating} / 5</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">(${product.reviewsCount + (sessionReviews[id]?.length || 0)} Reviews)</span>
+                                </div>
+
                                 <p class="text-4xl font-extrabold text-indigo-600 my-4">$${product.price.toFixed(2)}</p>
                                 <p class="text-gray-600 dark:text-gray-300 mb-6">Ultra-soft, sustainable fabric designed for maximum comfort and style. Perfect for everyday wear or your next adventure. Limited stock available in this run.</p>
                             </div>
@@ -835,6 +1059,39 @@
                                 <span>Add to Cart</span>
                             </button>
                         </div>
+
+                        <!-- Full Width Section for Reviews (Order 3) -->
+                        <div class="col-span-full order-3 mt-6">
+                            <h4 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-t pt-4">Customer Reviews</h4>
+                            
+                            <!-- Submit Review Form (FIXED Star Selector) -->
+                            <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg mb-6 border border-gray-100 dark:border-gray-700">
+                                <h5 class="text-xl font-semibold mb-3">Write a Review</h5>
+                                <div class="space-y-3">
+                                    <input type="text" id="review-name-${id}" placeholder="Your Name" class="w-full p-2 border rounded-lg dark:bg-gray-800 dark:border-gray-600" value="Anonymous">
+                                    <div class="flex items-center space-x-3">
+                                        <label class="font-medium text-sm">Your Rating:</label>
+                                        
+                                        <!-- FIX: Using CSS-driven star rating structure -->
+                                        <div id="review-star-selector" class="rating-container">
+                                            ${[5, 4, 3, 2, 1].map(r => `
+                                                <input type="radio" id="rating-${id}-${r}" name="review-rating-${id}" value="${r}" ${r === 5 ? 'checked' : ''}>
+                                                <label for="rating-${id}-${r}">★</label>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                    <textarea id="review-comment-${id}" rows="3" placeholder="Tell us about your experience..." class="w-full p-2 border rounded-lg dark:bg-gray-800 dark:border-gray-600"></textarea>
+                                    <button onclick="submitReview(${id})" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition shadow-md">Submit Review</button>
+                                    <p id="review-message-${id}"></p>
+                                </div>
+                            </div>
+
+                            <!-- Review List -->
+                            <div id="review-list" class="space-y-4">
+                                ${reviewsHtml.length > 0 ? reviewsHtml : '<p class="text-gray-500">Be the first to leave a review!</p>'}
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             `;
@@ -845,6 +1102,8 @@
             body.classList.add('show-quickview');
             body.classList.add('overflow-hidden');
             lucide.createIcons();
+
+            // FIX: Removed unnecessary JS for star selector as it is now CSS driven
         }
 
         function closeQuickView() {
@@ -857,51 +1116,6 @@
                 document.getElementById('quickview-modal-backdrop').classList.add('hidden');
             }, 300); 
         }
-        
-        // --- Filtering, Searching, and Sorting Functionality ---
-
-        /**
-         * Applies the current search, category filter, and sort criteria to the product list.
-         */
-        function applyFilters() {
-            const searchInput = document.getElementById('product-search').value.toLowerCase();
-            const categorySelect = document.getElementById('category-filter').value;
-            const sortCriteria = document.getElementById('sort-by').value;
-
-            let filteredList = [...PRODUCTS];
-
-            // 1. Apply Category Filter
-            if (categorySelect !== 'all') {
-                filteredList = filteredList.filter(p => p.category === categorySelect);
-            }
-
-            // 2. Apply Search Filter
-            if (searchInput) {
-                filteredList = filteredList.filter(p => 
-                    p.name.toLowerCase().includes(searchInput) || 
-                    p.category.toLowerCase().includes(searchInput)
-                );
-            }
-
-            // 3. Apply Sorting
-            switch (sortCriteria) {
-                case 'low-high':
-                    filteredList.sort((a, b) => a.price - b.price);
-                    break;
-                case 'high-low':
-                    filteredList.sort((a, b) => b.price - a.price);
-                    break;
-                case 'default':
-                default:
-                    // Reset to original ID order to maintain consistency
-                    filteredList.sort((a, b) => a.id - b.id); 
-                    break;
-            }
-
-            displayedProducts = filteredList;
-            renderProducts();
-        }
-
 
         // --- Initialization ---
 
@@ -909,12 +1123,13 @@
          * Initializes the store application.
          */
         function initStore() {
-            initializeDarkMode(); // NEW: Set initial dark mode
+            initializeDarkMode();
             applyFilters(); 
             updateCartCount();
-            updateWishlistCount(); // NEW: Update wishlist badge
+            updateWishlistCount();
             renderCart(); 
-            renderWishlist(); // NEW: Render wishlist modal content
+            renderWishlist(); 
+            renderRecentlyViewed(); 
 
             // Sticky Header Shadow Listener
             window.addEventListener('scroll', () => {
@@ -927,7 +1142,6 @@
             });
         }
 
-        // Run the initialization function when the page loads
         window.onload = initStore;
     </script>
 </body>
