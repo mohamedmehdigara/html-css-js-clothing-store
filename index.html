@@ -20,29 +20,26 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
         }
 
-        /* Cart Modal backdrop styling for better visual hierarchy */
-        #cart-modal-backdrop {
-            transition: opacity 0.3s ease-in-out;
-            pointer-events: none; /* Disable interaction when hidden */
-        }
-        .show-modal #cart-modal-backdrop {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        /* Quick View Modal styling */
-        #quickview-modal-backdrop {
+        /* Cart Modal backdrop styling */
+        #cart-modal-backdrop, #wishlist-modal-backdrop {
             transition: opacity 0.3s ease-in-out;
             pointer-events: none;
+            z-index: 50; /* Ensure modals are on top */
         }
-        .show-quickview #quickview-modal-backdrop {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .show-quickview #quickview-modal {
-            transform: scale(1);
-            opacity: 1;
-        }
+        
+        /* Cart Modal (Right side) */
+        #cart-modal { transform: translateX(100%); }
+        .show-cart #cart-modal-backdrop { opacity: 1; pointer-events: auto; }
+        .show-cart #cart-modal { transform: translateX(0); }
+
+        /* Wishlist Modal (Left side - NEW) */
+        #wishlist-modal { transform: translateX(-100%); }
+        .show-wishlist #wishlist-modal-backdrop { opacity: 1; pointer-events: auto; }
+        .show-wishlist #wishlist-modal { transform: translateX(0); }
+
+        /* Quick View Modal styling */
+        .show-quickview #quickview-modal-backdrop { opacity: 1; pointer-events: auto; }
+        .show-quickview #quickview-modal { transform: scale(1); opacity: 1; }
 
         /* Custom scrollbar styling for the product grid on smaller screens */
         @media (max-width: 768px) {
@@ -52,36 +49,52 @@
             }
             .product-card {
                 scroll-snap-align: start;
-                flex: 0 0 80%; /* Show 80% of the card on mobile */
+                flex: 0 0 80%;
                 margin-right: 1rem;
             }
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800" id="body-container">
+<!-- Apply dark class dynamically to enable dark mode -->
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-500" id="body-container">
 
     <!-- Header & Navigation -->
-    <header id="main-header" class="sticky top-0 z-40 bg-white transition duration-300">
+    <header id="main-header" class="sticky top-0 z-40 bg-white dark:bg-gray-800 transition duration-300">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <a href="#" class="text-3xl font-extrabold text-indigo-700 tracking-tight">
                 Stellar Threads
             </a>
             
-            <!-- Cart Button -->
-            <button id="cart-button" onclick="toggleCart()" class="relative p-2 rounded-full hover:bg-gray-100 transition duration-150">
-                <span id="cart-count" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full opacity-0 transition-opacity duration-300">0</span>
-                <i data-lucide="shopping-cart" class="w-6 h-6 text-gray-600"></i>
-            </button>
+            <!-- Action Buttons -->
+            <div class="flex space-x-3 items-center">
+                
+                <!-- Dark Mode Toggle (NEW) -->
+                <button id="dark-mode-toggle" onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-150">
+                    <i id="dark-mode-icon" data-lucide="moon" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
+                </button>
+                
+                <!-- Wishlist Button (NEW) -->
+                <button id="wishlist-button" onclick="toggleWishlistModal()" class="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-150">
+                    <span id="wishlist-count" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full opacity-0 transition-opacity duration-300">0</span>
+                    <i data-lucide="heart" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
+                </button>
+
+                <!-- Cart Button -->
+                <button id="cart-button" onclick="toggleCart()" class="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-150">
+                    <span id="cart-count" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full opacity-0 transition-opacity duration-300">0</span>
+                    <i data-lucide="shopping-cart" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
+                </button>
+            </div>
         </div>
     </header>
 
     <!-- Main Content: Hero Section -->
     <main class="container mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-20">
-        <section class="text-center mb-16 p-8 bg-indigo-50 rounded-2xl shadow-lg">
-            <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
+        <section class="text-center mb-16 p-8 bg-indigo-50 dark:bg-indigo-900 rounded-2xl shadow-lg transition-colors duration-500">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-4 tracking-tight">
                 New Arrivals: Cosmic Comfort
             </h1>
-            <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-6">
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-6">
                 Explore our latest collection of sustainable and ultra-soft essentials, designed for your journey.
             </p>
             <button class="bg-indigo-600 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-xl hover:bg-indigo-700 transition duration-300 transform hover:scale-105">
@@ -91,17 +104,17 @@
 
         <!-- Product Listing Header and Controls -->
         <div class="flex flex-col gap-4 mb-8">
-            <h2 class="text-3xl font-bold text-gray-900">Featured Products</h2>
+            <h2 class="text-3xl font-bold text-gray-900 dark:text-white">Featured Products</h2>
             <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <!-- Search Bar -->
                 <div class="relative w-full sm:w-1/3">
-                    <input type="text" id="product-search" oninput="applyFilters()" placeholder="Search products..." class="w-full p-2 pl-10 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="text" id="product-search" oninput="applyFilters()" placeholder="Search products..." class="w-full p-2 pl-10 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
                     <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
                 </div>
                 
                 <div class="flex space-x-4 w-full sm:w-auto">
                     <!-- Category Filter -->
-                    <select id="category-filter" onchange="applyFilters()" class="p-2 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500 w-1/2 sm:w-auto">
+                    <select id="category-filter" onchange="applyFilters()" class="p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500 w-1/2 sm:w-auto">
                         <option value="all">All Categories</option>
                         <option value="T-Shirts">T-Shirts</option>
                         <option value="Hoodies">Hoodies</option>
@@ -112,7 +125,7 @@
                     </select>
                     
                     <!-- Sort By -->
-                    <select id="sort-by" onchange="applyFilters()" class="p-2 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500 w-1/2 sm:w-auto">
+                    <select id="sort-by" onchange="applyFilters()" class="p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500 w-1/2 sm:w-auto">
                         <option value="default">Sort: Default</option>
                         <option value="low-high">Price: Low to High</option>
                         <option value="high-low">Price: High to Low</option>
@@ -136,24 +149,6 @@
                     <h4 class="text-xl font-bold mb-4 text-indigo-400">Stellar Threads</h4>
                     <p class="text-sm text-gray-400">Sustainable style for the modern explorer.</p>
                 </div>
-                <!-- Column 2: Quick Links -->
-                <div>
-                    <h4 class="font-semibold mb-4 border-b border-indigo-700 pb-1">Shop</h4>
-                    <ul class="space-y-2 text-sm text-gray-300">
-                        <li><a href="#" class="hover:text-indigo-400 transition">Tops</a></li>
-                        <li><a href="#" class="hover:text-indigo-400 transition">Bottoms</a></li>
-                        <li><a href="#" class="hover:text-indigo-400 transition">Outerwear</a></li>
-                    </ul>
-                </div>
-                <!-- Column 3: Customer Service -->
-                <div>
-                    <h4 class="font-semibold mb-4 border-b border-indigo-700 pb-1">Help</h4>
-                    <ul class="space-y-2 text-sm text-gray-300">
-                        <li><a href="#" class="hover:text-indigo-400 transition">FAQ</a></li>
-                        <li><a href="#" class="hover:text-indigo-400 transition">Shipping</a></li>
-                        <li><a href="#" class="hover:text-indigo-400 transition">Returns</a></li>
-                    </ul>
-                </div>
                 <!-- Column 4: Contact -->
                 <div>
                     <h4 class="font-semibold mb-4 border-b border-indigo-700 pb-1">Connect</h4>
@@ -170,17 +165,37 @@
             </div>
         </div>
     </footer>
+    
+    <!-- Wishlist Modal (NEW - Left Side) -->
+    <div id="wishlist-modal-backdrop" onclick="toggleWishlistModal()" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm opacity-0 hidden transition duration-300">
+        <div id="wishlist-modal" onclick="event.stopPropagation()" class="fixed top-0 left-0 w-full md:w-96 h-full bg-white dark:bg-gray-800 shadow-2xl transform transition duration-500 ease-in-out">
+            
+            <!-- Wishlist Header -->
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Your Wishlist</h3>
+                <button onclick="toggleWishlistModal()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <i data-lucide="x" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
+                </button>
+            </div>
+
+            <!-- Wishlist Items Container -->
+            <div id="wishlist-items-container" class="h-full overflow-y-auto max-h-[calc(100vh-80px)] p-6 space-y-4">
+                <!-- Wishlist items will be injected here -->
+                <p id="empty-wishlist-message" class="text-gray-500 text-center py-10">Your wishlist is empty. Save items you love!</p>
+            </div>
+        </div>
+    </div>
 
 
-    <!-- Shopping Cart Modal (Hidden by Default) -->
-    <div id="cart-modal-backdrop" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm opacity-0 hidden z-50 transition duration-300">
-        <div id="cart-modal" class="fixed top-0 right-0 w-full md:w-96 h-full bg-white shadow-2xl transform translate-x-full transition duration-500 ease-in-out">
+    <!-- Shopping Cart Modal (Right Side) -->
+    <div id="cart-modal-backdrop" onclick="toggleCart()" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm opacity-0 hidden transition duration-300">
+        <div id="cart-modal" onclick="event.stopPropagation()" class="fixed top-0 right-0 w-full md:w-96 h-full bg-white dark:bg-gray-800 shadow-2xl transform transition duration-500 ease-in-out">
             
             <!-- Cart Header -->
-            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
-                <h3 class="text-2xl font-bold text-gray-900">Your Cart</h3>
-                <button onclick="toggleCart()" class="p-2 rounded-full hover:bg-gray-100 transition">
-                    <i data-lucide="x" class="w-6 h-6 text-gray-600"></i>
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Your Cart</h3>
+                <button onclick="toggleCart()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <i data-lucide="x" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                 </button>
             </div>
 
@@ -190,11 +205,11 @@
                 <p id="empty-cart-message" class="text-gray-500 text-center py-10">Your cart is empty. Start shopping!</p>
             </div>
 
-            <!-- Coupon Input (NEW) -->
-            <div class="p-6 border-t border-gray-200 bg-gray-50">
-                <label for="coupon-code" class="text-sm font-semibold text-gray-700 block mb-2">Have a Coupon Code?</label>
+            <!-- Coupon Input -->
+            <div class="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+                <label for="coupon-code" class="text-sm font-semibold text-gray-700 dark:text-gray-200 block mb-2">Have a Coupon Code?</label>
                 <div class="flex space-x-2">
-                    <input type="text" id="coupon-code" placeholder="e.g. GEMINI20" class="flex-grow p-2 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="text" id="coupon-code" placeholder="e.g. GEMINI20" class="flex-grow p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500">
                     <button id="apply-coupon-btn" onclick="applyCoupon()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition shadow-md">Apply</button>
                 </div>
                 <p id="coupon-message" class="text-sm mt-2 font-medium"></p>
@@ -202,7 +217,7 @@
 
 
             <!-- Cart Summary & Checkout -->
-            <div class="absolute bottom-0 w-full p-6 border-t border-gray-200 bg-white">
+            <div class="absolute bottom-0 w-full p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                 <div id="cart-summary-totals">
                     <!-- Totals (Subtotal, Discount, Total) will be injected here by JS -->
                 </div>
@@ -214,9 +229,9 @@
         </div>
     </div>
 
-    <!-- Quick View Modal (Hidden by Default) -->
-    <div id="quickview-modal-backdrop" onclick="closeQuickView()" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm opacity-0 hidden z-50 transition duration-300 flex items-center justify-center p-4">
-        <div id="quickview-modal" onclick="event.stopPropagation()" class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform scale-90 opacity-0 transition duration-300 ease-in-out">
+    <!-- Quick View Modal -->
+    <div id="quickview-modal-backdrop" onclick="closeQuickView()" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm opacity-0 hidden transition duration-300 flex items-center justify-center p-4">
+        <div id="quickview-modal" onclick="event.stopPropagation()" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform scale-90 opacity-0 transition duration-300 ease-in-out">
             <!-- Modal content will be injected here by openQuickView() -->
         </div>
     </div>
@@ -235,7 +250,7 @@
             { id: 6, name: "Minimalist Sweater", price: 54.99, image: "https://placehold.co/600x600/EF4444/FFFFFF?text=Red+Sweater", category: "Sweaters" },
         ];
         
-        // Available Coupon Codes and their respective discounts
+        // Available Coupon Codes
         const VALID_COUPONS = {
             'GEMINI20': 0.20, // 20% off
             'SAVE10': 0.10,   // 10% off
@@ -244,8 +259,11 @@
 
         // Global State
         let cart = JSON.parse(localStorage.getItem('stellarThreadsCart')) || [];
-        // Tracks the currently applied coupon (non-persistent for demo)
+        let wishlist = JSON.parse(localStorage.getItem('stellarThreadsWishlist')) || []; // NEW: Wishlist State
         let appliedCoupon = { code: null, discountPercentage: 0, message: '' }; 
+
+        const initialProducts = [...PRODUCTS].sort((a, b) => a.id - b.id);
+        let displayedProducts = [...initialProducts]; 
 
         // --- Core Utility Functions ---
 
@@ -257,6 +275,15 @@
         function getProductById(id) {
             return PRODUCTS.find(p => p.id === id);
         }
+        
+        /**
+         * Checks if a product is in the wishlist.
+         * @param {number} id - The product ID.
+         * @returns {boolean} True if in wishlist.
+         */
+        function checkIfInWishlist(id) {
+            return wishlist.some(item => item.id === id);
+        }
 
         /**
          * Updates the localStorage and re-renders UI elements related to the cart.
@@ -267,6 +294,16 @@
             updateCartCount();
         }
 
+        /**
+         * Updates the localStorage and re-renders UI elements related to the wishlist.
+         */
+        function updateWishlistState() { // NEW
+            localStorage.setItem('stellarThreadsWishlist', JSON.stringify(wishlist));
+            renderWishlist();
+            updateWishlistCount();
+            renderProducts(); // Re-render product cards to update heart icons
+        }
+
         // --- UI Rendering Functions ---
 
         /**
@@ -274,29 +311,37 @@
          */
         function renderProducts() {
             const grid = document.getElementById('product-grid');
-            grid.innerHTML = ''; // Clear previous products
+            grid.innerHTML = ''; 
 
-            // Check if any products are displayed after filtering
             if (displayedProducts.length === 0) {
-                 grid.innerHTML = '<p class="col-span-full text-center py-10 text-xl text-gray-500">No products match your current search and filter criteria.</p>';
+                 grid.innerHTML = '<p class="col-span-full text-center py-10 text-xl text-gray-500 dark:text-gray-400">No products match your current search and filter criteria.</p>';
                  return;
             }
 
             displayedProducts.forEach(product => {
+                const isWished = checkIfInWishlist(product.id);
+                const heartColor = isWished ? 'fill-red-500 text-red-500' : 'text-gray-500';
+
                 const productCard = `
-                    <div class="product-card bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-1 flex flex-col justify-between border border-gray-100">
+                    <div class="product-card bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-1 flex flex-col justify-between border border-gray-100 dark:border-gray-700">
                         <div class="relative overflow-hidden">
                             <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover transition duration-500 hover:scale-105" onerror="this.onerror=null; this.src='https://placehold.co/600x600/E5E7EB/4B5563?text=Image+Missing';">
                             <span class="absolute top-2 left-2 text-xs font-medium bg-indigo-600 text-white px-2 py-1 rounded-full">${product.category}</span>
+                            
+                            <!-- Wishlist Toggle Button (NEW) -->
+                            <button onclick="toggleWishlist(${product.id})" class="absolute top-2 right-2 p-2 rounded-full bg-white dark:bg-gray-900/80 backdrop-blur-sm hover:bg-red-100 dark:hover:bg-red-900/50 transition shadow-md">
+                                <i data-lucide="heart" class="w-5 h-5 ${heartColor}"></i>
+                            </button>
+
                         </div>
                         <div class="p-4 flex flex-col flex-grow">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-1">${product.name}</h3>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">${product.name}</h3>
                             <p class="text-2xl font-bold text-indigo-600 mb-3">$${product.price.toFixed(2)}</p>
                             
-                            <!-- Buttons for Quick View and Add to Cart -->
+                            <!-- Updated buttons for Quick View and Add to Cart -->
                             <div class="mt-auto flex space-x-2">
                                 <button onclick="openQuickView(${product.id})" 
-                                    class="w-1/2 bg-gray-200 text-gray-800 p-3 rounded-lg font-medium hover:bg-gray-300 transition duration-200 flex items-center justify-center space-x-1 shadow-sm text-sm">
+                                    class="w-1/2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 p-3 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-200 flex items-center justify-center space-x-1 shadow-sm text-sm">
                                     <i data-lucide="eye" class="w-4 h-4"></i>
                                     <span>Quick View</span>
                                 </button>
@@ -342,19 +387,19 @@
                         subtotalPrice += itemTotal;
                         
                         const cartItemHtml = `
-                            <div class="flex items-center space-x-4 border-b pb-4">
-                                <img src="${product.image}" alt="${product.name}" class="w-16 h-16 rounded-lg object-cover border border-gray-100" onerror="this.onerror=null; this.src='https://placehold.co/100x100/E5E7EB/4B5563?text=No+Img';">
+                            <div class="flex items-center space-x-4 border-b pb-4 dark:border-gray-700">
+                                <img src="${product.image}" alt="${product.name}" class="w-16 h-16 rounded-lg object-cover border border-gray-100 dark:border-gray-700" onerror="this.onerror=null; this.src='https://placehold.co/100x100/E5E7EB/4B5563?text=No+Img';">
                                 <div class="flex-grow">
-                                    <p class="text-base font-semibold text-gray-900">${product.name}</p>
-                                    <p class="text-sm text-gray-600">$${product.price.toFixed(2)} x ${item.quantity}</p>
+                                    <p class="text-base font-semibold text-gray-900 dark:text-white">${product.name}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">$${product.price.toFixed(2)} x ${item.quantity}</p>
                                 </div>
                                 <div class="flex items-center space-x-2">
-                                    <button onclick="changeQuantity(${item.id}, -1)" class="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition">
-                                        <i data-lucide="minus" class="w-4 h-4"></i>
+                                    <button onclick="changeQuantity(${item.id}, -1)" class="p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                                        <i data-lucide="minus" class="w-4 h-4 text-gray-700 dark:text-gray-200"></i>
                                     </button>
                                     <span class="font-medium">${item.quantity}</span>
-                                    <button onclick="changeQuantity(${item.id}, 1)" class="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition">
-                                        <i data-lucide="plus" class="w-4 h-4"></i>
+                                    <button onclick="changeQuantity(${item.id}, 1)" class="p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                                        <i data-lucide="plus" class="w-4 h-4 text-gray-700 dark:text-gray-200"></i>
                                     </button>
                                 </div>
                                 <button onclick="removeFromCart(${item.id})" class="p-1 text-red-500 hover:text-red-700 transition">
@@ -372,7 +417,7 @@
             const totalPrice = subtotalPrice - discountAmount;
 
             let totalsHtml = `
-                <div class="flex justify-between items-center text-lg text-gray-700 mb-2">
+                <div class="flex justify-between items-center text-lg text-gray-700 dark:text-gray-300 mb-2">
                     <span>Subtotal:</span>
                     <span class="font-medium">$${subtotalPrice.toFixed(2)}</span>
                 </div>
@@ -395,7 +440,7 @@
 
             // Final Total
             totalsHtml += `
-                <div class="flex justify-between items-center font-bold text-2xl pt-2 border-t border-gray-200">
+                <div class="flex justify-between items-center font-bold text-2xl pt-2 border-t border-gray-200 dark:border-gray-700">
                     <span>Order Total:</span>
                     <span class="text-indigo-600">$${totalPrice.toFixed(2)}</span>
                 </div>
@@ -425,6 +470,49 @@
         }
 
         /**
+         * Renders the current state of the wishlist in its modal. (NEW)
+         */
+        function renderWishlist() {
+            const itemsContainer = document.getElementById('wishlist-items-container');
+            const emptyMessage = document.getElementById('empty-wishlist-message');
+
+            itemsContainer.innerHTML = ''; // Clear items
+
+            if (wishlist.length === 0) {
+                emptyMessage.style.display = 'block';
+            } else {
+                emptyMessage.style.display = 'none';
+                
+                wishlist.forEach(item => {
+                    const product = getProductById(item.id);
+                    if (product) {
+                        const wishlistHtml = `
+                            <div class="flex items-start space-x-4 p-3 rounded-lg border border-gray-100 dark:border-gray-700 dark:bg-gray-700/50">
+                                <img src="${product.image}" alt="${product.name}" class="w-16 h-16 rounded-lg object-cover" onerror="this.onerror=null; this.src='https://placehold.co/100x100/E5E7EB/4B5563?text=No+Img';">
+                                <div class="flex-grow">
+                                    <p class="text-base font-semibold text-gray-900 dark:text-white">${product.name}</p>
+                                    <p class="text-lg font-bold text-indigo-600">$${product.price.toFixed(2)}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">${product.category}</p>
+                                </div>
+                                <div class="flex flex-col space-y-2 items-end">
+                                    <button onclick="moveToCart(${product.id})" class="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm flex items-center shadow-sm">
+                                        <i data-lucide="shopping-cart" class="w-4 h-4 mr-1"></i> Add
+                                    </button>
+                                    <button onclick="toggleWishlist(${product.id})" class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 transition">
+                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        itemsContainer.insertAdjacentHTML('beforeend', wishlistHtml);
+                    }
+                });
+            }
+            
+            lucide.createIcons();
+        }
+
+        /**
          * Updates the cart badge count in the header.
          */
         function updateCartCount() {
@@ -434,7 +522,118 @@
             badge.classList.toggle('opacity-0', count === 0);
         }
 
-        // --- Coupon Action Functions (NEW) ---
+        /**
+         * Updates the wishlist badge count in the header. (NEW)
+         */
+        function updateWishlistCount() {
+            const count = wishlist.length;
+            const badge = document.getElementById('wishlist-count');
+            badge.textContent = count;
+            badge.classList.toggle('opacity-0', count === 0);
+        }
+
+        // --- Dark Mode Functions (NEW) ---
+
+        /**
+         * Toggles between light and dark mode and persists the preference.
+         */
+        function toggleDarkMode() {
+            const body = document.getElementById('body-container');
+            const icon = document.getElementById('dark-mode-icon');
+            
+            body.classList.toggle('dark');
+            const isDark = body.classList.contains('dark');
+            
+            localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+
+            // Update icon
+            if (isDark) {
+                icon.setAttribute('data-lucide', 'sun');
+            } else {
+                icon.setAttribute('data-lucide', 'moon');
+            }
+            lucide.createIcons();
+        }
+
+        /**
+         * Applies the stored dark mode preference on initialization.
+         */
+        function initializeDarkMode() {
+            const storedMode = localStorage.getItem('darkMode');
+            const body = document.getElementById('body-container');
+            const icon = document.getElementById('dark-mode-icon');
+            
+            if (storedMode === 'enabled') {
+                body.classList.add('dark');
+                icon.setAttribute('data-lucide', 'sun');
+            } else {
+                body.classList.remove('dark');
+                icon.setAttribute('data-lucide', 'moon');
+            }
+        }
+
+        // --- Wishlist Action Functions (NEW) ---
+
+        /**
+         * Adds or removes a product from the wishlist.
+         * @param {number} id - The product ID.
+         */
+        function toggleWishlist(id) {
+            const itemIndex = wishlist.findIndex(item => item.id === id);
+
+            if (itemIndex !== -1) {
+                // Remove from wishlist
+                wishlist.splice(itemIndex, 1);
+            } else {
+                // Add to wishlist
+                wishlist.push({ id: id });
+            }
+
+            updateWishlistState();
+        }
+
+        /**
+         * Moves an item from the wishlist to the cart.
+         * @param {number} id - The product ID.
+         */
+        function moveToCart(id) {
+            // 1. Add to Cart
+            addToCart(id); 
+            // 2. Remove from Wishlist
+            wishlist = wishlist.filter(item => item.id !== id);
+            
+            // 3. Update states
+            updateWishlistState();
+            // Since addToCart already calls updateCartState, we only need to update wishlist state.
+        }
+
+        /**
+         * Toggles the visibility of the wishlist modal.
+         */
+        function toggleWishlistModal() {
+            const modalBackdrop = document.getElementById('wishlist-modal-backdrop');
+            const body = document.getElementById('body-container');
+
+            // Close cart/quickview first if open
+            if (body.classList.contains('show-cart')) toggleCart();
+            if (body.classList.contains('show-quickview')) closeQuickView();
+            
+            if (modalBackdrop.classList.contains('hidden')) {
+                modalBackdrop.classList.remove('hidden');
+                setTimeout(() => {
+                    body.classList.add('show-wishlist');
+                    body.classList.add('overflow-hidden');
+                }, 10);
+            } else {
+                body.classList.remove('show-wishlist');
+                body.classList.remove('overflow-hidden');
+                setTimeout(() => {
+                    modalBackdrop.classList.add('hidden');
+                }, 500);
+            }
+        }
+
+        // --- Coupon Action Functions ---
 
         /**
          * Applies the coupon code entered by the user.
@@ -456,7 +655,7 @@
                 appliedCoupon = { code: null, discountPercentage: 0, message: `Invalid coupon code: '${code}'.` };
             }
 
-            renderCart(); // Re-render to update the price and message
+            renderCart(); 
         }
 
         /**
@@ -483,20 +682,17 @@
                 cart.push({ id: id, quantity: 1 });
             }
 
-            console.log(`Added product ${id}. Cart:`, cart);
             updateCartState();
             // Show cart modal briefly on add
             const modalBackdrop = document.getElementById('cart-modal-backdrop');
             if (modalBackdrop.classList.contains('hidden')) {
                 toggleCart();
-                setTimeout(toggleCart, 3000); // Close after 3 seconds
+                setTimeout(toggleCart, 3000); 
             }
         }
 
         /**
          * Changes the quantity of an item in the cart.
-         * @param {number} id - The product ID.
-         * @param {number} delta - The amount to change (e.g., 1 or -1).
          */
         function changeQuantity(id, delta) {
             const itemIndex = cart.findIndex(item => item.id === id);
@@ -505,7 +701,6 @@
                 cart[itemIndex].quantity += delta;
 
                 if (cart[itemIndex].quantity <= 0) {
-                    // Remove item if quantity drops to zero or below
                     cart.splice(itemIndex, 1);
                 }
                 
@@ -515,7 +710,6 @@
 
         /**
          * Removes an item entirely from the cart.
-         * @param {number} id - The product ID.
          */
         function removeFromCart(id) {
             cart = cart.filter(item => item.id !== id);
@@ -527,37 +721,41 @@
          */
         function toggleCart() {
             const modalBackdrop = document.getElementById('cart-modal-backdrop');
-            const modal = document.getElementById('cart-modal');
             const body = document.getElementById('body-container');
+            const modal = document.getElementById('cart-modal');
+            
+            // Close wishlist/quickview first if open
+            if (body.classList.contains('show-wishlist')) toggleWishlistModal();
+            if (body.classList.contains('show-quickview')) closeQuickView();
+
 
             if (modalBackdrop.classList.contains('hidden')) {
                 // Show modal
                 modalBackdrop.classList.remove('hidden');
                 setTimeout(() => {
-                    modalBackdrop.style.opacity = '1';
-                    modal.style.transform = 'translateX(0)';
-                    body.classList.add('overflow-hidden'); // Prevent background scroll
+                    body.classList.add('show-cart');
+                    body.classList.add('overflow-hidden'); 
                 }, 10);
             } else {
                 // Hide modal
-                modalBackdrop.style.opacity = '0';
-                modal.style.transform = 'translateX(100%)';
+                body.classList.remove('show-cart');
                 body.classList.remove('overflow-hidden');
                 setTimeout(() => {
                     modalBackdrop.classList.add('hidden');
-                }, 500); // Wait for transition to complete
+                }, 500);
             }
         }
 
         /**
-         * Simulates the checkout process (does not process real payment).
+         * Simulates the checkout process.
          */
         function checkout() {
-            const finalTotal = cart.reduce((sum, item) => sum + (getProductById(item.id)?.price || 0) * item.quantity, 0) * (1 - appliedCoupon.discountPercentage);
+            const subtotal = cart.reduce((sum, item) => sum + (getProductById(item.id)?.price || 0) * item.quantity, 0);
+            const finalTotal = subtotal * (1 - appliedCoupon.discountPercentage);
             
             const message = cart.length === 0 
                 ? 'Your cart is empty! Add some items before checking out.'
-                : `Thank you for your order! Final Total: $${finalTotal.toFixed(2)}.\nThis is a frontend demo checkout. The cart has been cleared.`;
+                : `Thank you for your order! Final Total: $${finalTotal.toFixed(2)}.\nThe cart has been cleared.`;
 
             window.alert(message); 
             
@@ -571,17 +769,8 @@
         }
         
         // --- Quick View Image Gallery Functions ---
-
-        /**
-         * Switches the main image displayed in the Quick View modal.
-         * Also updates the active thumbnail border.
-         * @param {string} newSrc - The URL of the new image.
-         * @param {HTMLElement} element - The clicked thumbnail element.
-         */
         function switchQuickViewImage(newSrc, element) {
             document.getElementById('quickview-main-image').src = newSrc;
-            
-            // Update active thumbnail styling
             const thumbnails = document.querySelectorAll('.quickview-thumbnail');
             thumbnails.forEach(thumb => {
                 thumb.classList.remove('ring-4', 'ring-indigo-500', 'ring-offset-2');
@@ -589,38 +778,33 @@
             element.classList.add('ring-4', 'ring-indigo-500', 'ring-offset-2');
         }
 
-        /**
-         * Opens the Quick View modal and populates it with product data and image gallery.
-         * @param {number} id - The product ID.
-         */
         function openQuickView(id) {
             const product = getProductById(id);
             if (!product) return;
 
-            const modalContainer = document.getElementById('quickview-modal');
+            // Close other modals
             const body = document.getElementById('body-container');
-            
-            // Determine images to display (use gallery if available, otherwise just the main image)
-            const images = product.gallery || [product.image];
-            const firstImage = images[0] || product.image; // Image shown initially
+            if (body.classList.contains('show-cart')) toggleCart();
+            if (body.classList.contains('show-wishlist')) toggleWishlistModal();
 
-            // Generate thumbnails HTML
+            const modalContainer = document.getElementById('quickview-modal');
+            const images = product.gallery || [product.image];
+            const firstImage = images[0] || product.image;
+
             const thumbnailsHtml = images.map((imgSrc, index) => `
                 <img src="${imgSrc}" 
                     alt="${product.name} View ${index + 1}" 
-                    class="quickview-thumbnail w-16 h-16 object-cover rounded-lg cursor-pointer transition duration-150 border border-gray-200 ${index === 0 ? 'ring-4 ring-indigo-500 ring-offset-2' : ''}" 
+                    class="quickview-thumbnail w-16 h-16 object-cover rounded-lg cursor-pointer transition duration-150 border border-gray-200 dark:border-gray-600 ${index === 0 ? 'ring-4 ring-indigo-500 ring-offset-2' : ''}" 
                     onclick="switchQuickViewImage('${imgSrc}', this)"
                     onerror="this.onerror=null; this.src='https://placehold.co/60x60/E5E7EB/4B5563?text=N/A';"
                 >
             `).join('');
 
-
-            // Modal Content HTML
             const modalContent = `
                 <div class="p-6">
                     <div class="flex justify-end mb-4">
-                        <button onclick="closeQuickView()" class="p-2 rounded-full hover:bg-gray-100 transition">
-                            <i data-lucide="x" class="w-6 h-6 text-gray-600"></i>
+                        <button onclick="closeQuickView()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                            <i data-lucide="x" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                         </button>
                     </div>
                     <div class="flex flex-col md:flex-row md:space-x-6">
@@ -638,10 +822,10 @@
                         <!-- Details Column -->
                         <div class="md:w-1/2 flex flex-col justify-between">
                             <div>
-                                <h3 class="text-3xl font-bold text-gray-900 mb-2">${product.name}</h3>
-                                <span class="text-sm font-medium bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">${product.category}</span>
+                                <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">${product.name}</h3>
+                                <span class="text-sm font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full">${product.category}</span>
                                 <p class="text-4xl font-extrabold text-indigo-600 my-4">$${product.price.toFixed(2)}</p>
-                                <p class="text-gray-600 mb-6">Ultra-soft, sustainable fabric designed for maximum comfort and style. Perfect for everyday wear or your next adventure. Limited stock available in this run.</p>
+                                <p class="text-gray-600 dark:text-gray-300 mb-6">Ultra-soft, sustainable fabric designed for maximum comfort and style. Perfect for everyday wear or your next adventure. Limited stock available in this run.</p>
                             </div>
                             
                             <!-- Action -->
@@ -657,16 +841,12 @@
             
             modalContainer.innerHTML = modalContent;
 
-            // Show modal and apply styling
             document.getElementById('quickview-modal-backdrop').classList.remove('hidden');
             body.classList.add('show-quickview');
-            body.classList.add('overflow-hidden'); // Prevent background scroll
+            body.classList.add('overflow-hidden');
             lucide.createIcons();
         }
 
-        /**
-         * Closes the Quick View modal.
-         */
         function closeQuickView() {
             const body = document.getElementById('body-container');
             
@@ -675,7 +855,7 @@
 
             setTimeout(() => {
                 document.getElementById('quickview-modal-backdrop').classList.add('hidden');
-            }, 300); // Match CSS transition time
+            }, 300); 
         }
         
         // --- Filtering, Searching, and Sorting Functionality ---
@@ -729,10 +909,12 @@
          * Initializes the store application.
          */
         function initStore() {
-            // Initial render now goes through the filter pipeline
+            initializeDarkMode(); // NEW: Set initial dark mode
             applyFilters(); 
             updateCartCount();
-            renderCart(); // Initialize cart view state
+            updateWishlistCount(); // NEW: Update wishlist badge
+            renderCart(); 
+            renderWishlist(); // NEW: Render wishlist modal content
 
             // Sticky Header Shadow Listener
             window.addEventListener('scroll', () => {
