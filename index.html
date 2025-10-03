@@ -30,7 +30,7 @@
             pointer-events: auto;
         }
 
-        /* Quick View Modal styling (New Feature) */
+        /* Quick View Modal styling */
         #quickview-modal-backdrop {
             transition: opacity 0.3s ease-in-out;
             pointer-events: none;
@@ -185,18 +185,28 @@
             </div>
 
             <!-- Cart Items Container -->
-            <div id="cart-items-container" class="h-auto overflow-y-auto max-h-[calc(100vh-200px)] p-6 space-y-4">
+            <div id="cart-items-container" class="h-auto overflow-y-auto max-h-[calc(100vh-350px)] p-6 space-y-4">
                 <!-- Cart items will be injected here -->
                 <p id="empty-cart-message" class="text-gray-500 text-center py-10">Your cart is empty. Start shopping!</p>
             </div>
 
+            <!-- Coupon Input (NEW) -->
+            <div class="p-6 border-t border-gray-200 bg-gray-50">
+                <label for="coupon-code" class="text-sm font-semibold text-gray-700 block mb-2">Have a Coupon Code?</label>
+                <div class="flex space-x-2">
+                    <input type="text" id="coupon-code" placeholder="e.g. GEMINI20" class="flex-grow p-2 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <button id="apply-coupon-btn" onclick="applyCoupon()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition shadow-md">Apply</button>
+                </div>
+                <p id="coupon-message" class="text-sm mt-2 font-medium"></p>
+            </div>
+
+
             <!-- Cart Summary & Checkout -->
             <div class="absolute bottom-0 w-full p-6 border-t border-gray-200 bg-white">
-                <div class="flex justify-between items-center font-bold text-xl mb-4">
-                    <span>Total:</span>
-                    <span id="cart-total-price">$0.00</span>
+                <div id="cart-summary-totals">
+                    <!-- Totals (Subtotal, Discount, Total) will be injected here by JS -->
                 </div>
-                <button onclick="checkout()" class="w-full bg-green-600 text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-green-700 transition duration-300 shadow-lg">
+                <button onclick="checkout()" class="w-full bg-green-600 text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-green-700 transition duration-300 shadow-lg mt-4">
                     Proceed to Checkout
                 </button>
             </div>
@@ -204,7 +214,7 @@
         </div>
     </div>
 
-    <!-- Quick View Modal (New Feature - Hidden by Default) -->
+    <!-- Quick View Modal (Hidden by Default) -->
     <div id="quickview-modal-backdrop" onclick="closeQuickView()" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm opacity-0 hidden z-50 transition duration-300 flex items-center justify-center p-4">
         <div id="quickview-modal" onclick="event.stopPropagation()" class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform scale-90 opacity-0 transition duration-300 ease-in-out">
             <!-- Modal content will be injected here by openQuickView() -->
@@ -224,12 +234,18 @@
             { id: 5, name: "Aero Joggers", price: 64.99, image: "https://placehold.co/600x600/8B5CF6/FFFFFF?text=Purple+Joggers", category: "Bottoms" },
             { id: 6, name: "Minimalist Sweater", price: 54.99, image: "https://placehold.co/600x600/EF4444/FFFFFF?text=Red+Sweater", category: "Sweaters" },
         ];
+        
+        // Available Coupon Codes and their respective discounts
+        const VALID_COUPONS = {
+            'GEMINI20': 0.20, // 20% off
+            'SAVE10': 0.10,   // 10% off
+            'NEWUSER': 0.15,  // 15% off
+        };
 
         // Global State
         let cart = JSON.parse(localStorage.getItem('stellarThreadsCart')) || [];
-        // Store a sorted copy of the original products for 'default' sort and filtering
-        const initialProducts = [...PRODUCTS].sort((a, b) => a.id - b.id);
-        let displayedProducts = [...initialProducts]; // The list currently rendered
+        // Tracks the currently applied coupon (non-persistent for demo)
+        let appliedCoupon = { code: null, discountPercentage: 0, message: '' }; 
 
         // --- Core Utility Functions ---
 
@@ -277,7 +293,7 @@
                             <h3 class="text-lg font-semibold text-gray-900 mb-1">${product.name}</h3>
                             <p class="text-2xl font-bold text-indigo-600 mb-3">$${product.price.toFixed(2)}</p>
                             
-                            <!-- Updated buttons for Quick View and Add to Cart -->
+                            <!-- Buttons for Quick View and Add to Cart -->
                             <div class="mt-auto flex space-x-2">
                                 <button onclick="openQuickView(${product.id})" 
                                     class="w-1/2 bg-gray-200 text-gray-800 p-3 rounded-lg font-medium hover:bg-gray-300 transition duration-200 flex items-center justify-center space-x-1 shadow-sm text-sm">
@@ -305,8 +321,12 @@
         function renderCart() {
             const itemsContainer = document.getElementById('cart-items-container');
             const emptyMessage = document.getElementById('empty-cart-message');
-            const totalElement = document.getElementById('cart-total-price');
-            let totalPrice = 0;
+            const totalSummary = document.getElementById('cart-summary-totals');
+            const couponInput = document.getElementById('coupon-code');
+            const applyBtn = document.getElementById('apply-coupon-btn');
+            const couponMsg = document.getElementById('coupon-message');
+
+            let subtotalPrice = 0;
 
             itemsContainer.innerHTML = ''; // Clear items
 
@@ -319,7 +339,7 @@
                     const product = getProductById(item.id);
                     if (product) {
                         const itemTotal = product.price * item.quantity;
-                        totalPrice += itemTotal;
+                        subtotalPrice += itemTotal;
                         
                         const cartItemHtml = `
                             <div class="flex items-center space-x-4 border-b pb-4">
@@ -347,7 +367,60 @@
                 });
             }
             
-            totalElement.textContent = `$${totalPrice.toFixed(2)}`;
+            // --- Coupon & Total Calculations ---
+            const discountAmount = subtotalPrice * appliedCoupon.discountPercentage;
+            const totalPrice = subtotalPrice - discountAmount;
+
+            let totalsHtml = `
+                <div class="flex justify-between items-center text-lg text-gray-700 mb-2">
+                    <span>Subtotal:</span>
+                    <span class="font-medium">$${subtotalPrice.toFixed(2)}</span>
+                </div>
+            `;
+            
+            // Display discount line if applied
+            if (appliedCoupon.code && appliedCoupon.discountPercentage > 0) {
+                totalsHtml += `
+                    <div class="flex justify-between items-center text-lg text-green-600 font-semibold mb-2">
+                        <span class="flex items-center">
+                            Discount (${appliedCoupon.code})
+                            <button onclick="removeCoupon()" class="ml-2 text-red-500 hover:text-red-700">
+                                <i data-lucide="x-circle" class="w-4 h-4"></i>
+                            </button>
+                        </span>
+                        <span>-$${discountAmount.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+
+            // Final Total
+            totalsHtml += `
+                <div class="flex justify-between items-center font-bold text-2xl pt-2 border-t border-gray-200">
+                    <span>Order Total:</span>
+                    <span class="text-indigo-600">$${totalPrice.toFixed(2)}</span>
+                </div>
+            `;
+            
+            totalSummary.innerHTML = totalsHtml;
+            
+            // Update Coupon UI State
+            if (appliedCoupon.code) {
+                couponInput.value = appliedCoupon.code;
+                couponInput.disabled = true;
+                applyBtn.disabled = true;
+                applyBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                applyBtn.classList.add('bg-gray-300', 'cursor-not-allowed');
+                couponMsg.textContent = appliedCoupon.message;
+                couponMsg.className = 'text-sm mt-2 font-medium text-green-600';
+            } else {
+                couponInput.disabled = false;
+                applyBtn.disabled = false;
+                applyBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                applyBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+                couponMsg.textContent = appliedCoupon.message;
+                couponMsg.className = 'text-sm mt-2 font-medium text-red-500';
+            }
+
             lucide.createIcons(); // Re-initialize icons
         }
 
@@ -359,6 +432,40 @@
             const badge = document.getElementById('cart-count');
             badge.textContent = count;
             badge.classList.toggle('opacity-0', count === 0);
+        }
+
+        // --- Coupon Action Functions (NEW) ---
+
+        /**
+         * Applies the coupon code entered by the user.
+         */
+        function applyCoupon() {
+            const inputElement = document.getElementById('coupon-code');
+            const code = inputElement.value.toUpperCase().trim();
+
+            if (!code) {
+                appliedCoupon = { code: null, discountPercentage: 0, message: 'Please enter a coupon code.' };
+            } else if (VALID_COUPONS[code]) {
+                const discount = VALID_COUPONS[code];
+                appliedCoupon = { 
+                    code: code, 
+                    discountPercentage: discount, 
+                    message: `Coupon '${code}' applied! You save ${(discount * 100)}% on your order.`
+                };
+            } else {
+                appliedCoupon = { code: null, discountPercentage: 0, message: `Invalid coupon code: '${code}'.` };
+            }
+
+            renderCart(); // Re-render to update the price and message
+        }
+
+        /**
+         * Removes the currently applied coupon.
+         */
+        function removeCoupon() {
+            appliedCoupon = { code: null, discountPercentage: 0, message: '' };
+            document.getElementById('coupon-code').value = '';
+            renderCart();
         }
 
         // --- Cart Action Functions ---
@@ -446,23 +553,24 @@
          * Simulates the checkout process (does not process real payment).
          */
         function checkout() {
-            // NOTE: Using window.alert() here for simplicity in this single-file demo, 
-            // but in a professional application, a custom modal UI would be used.
+            const finalTotal = cart.reduce((sum, item) => sum + (getProductById(item.id)?.price || 0) * item.quantity, 0) * (1 - appliedCoupon.discountPercentage);
+            
             const message = cart.length === 0 
                 ? 'Your cart is empty! Add some items before checking out.'
-                : `Thank you for your order! Total: $${cart.reduce((sum, item) => sum + (getProductById(item.id)?.price || 0) * item.quantity, 0).toFixed(2)}. This is a frontend demo checkout. The cart has been cleared.`;
+                : `Thank you for your order! Final Total: $${finalTotal.toFixed(2)}.\nThis is a frontend demo checkout. The cart has been cleared.`;
 
             window.alert(message); 
             
             if (cart.length > 0) {
                 // Clear cart state
                 cart = [];
+                appliedCoupon = { code: null, discountPercentage: 0, message: '' };
                 updateCartState();
                 toggleCart();
             }
         }
         
-        // --- Quick View Image Gallery Functions (New Feature) ---
+        // --- Quick View Image Gallery Functions ---
 
         /**
          * Switches the main image displayed in the Quick View modal.
