@@ -109,6 +109,20 @@
             opacity: 1;
             transform: translateX(0);
         }
+
+        /* NEW: Magnifier Lens Styling */
+        #magnifier-lens {
+            pointer-events: none;
+            position: absolute;
+            border: 4px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            border-radius: 50%; /* Circular lens */
+            overflow: hidden;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.2s;
+            background-repeat: no-repeat;
+        }
     </style>
 </head>
 <!-- Apply dark class dynamically to enable dark mode -->
@@ -341,28 +355,28 @@
 
     <!-- JavaScript for Store Logic -->
     <script>
-        // Store Product Data - Added sizes and colors for options
+        // Store Product Data - Added sizes, colors, stock, and tags
         const PRODUCTS = [
             { id: 1, name: "The Classic Tee (Navy)", price: 29.99, rating: 4.8, reviewsCount: 94, category: "T-Shirts", 
               image: "https://placehold.co/600x600/3B82F6/FFFFFF?text=Navy+Tee+FRONT", 
               gallery: ["https://placehold.co/600x600/3B82F6/FFFFFF?text=Navy+Tee+FRONT", "https://placehold.co/600x600/2563EB/FFFFFF?text=Navy+Tee+BACK", "https://placehold.co/600x600/1D4ED8/FFFFFF?text=Navy+Tee+DETAIL"],
-              sizes: ['S', 'M', 'L', 'XL'], colors: ['Navy (Blue)', 'White', 'Black'] },
+              sizes: ['S', 'M', 'L', 'XL'], colors: ['Navy (Blue)', 'White', 'Black'], stock: 15, tags: ['Best Seller'] },
             { id: 2, name: "Urban Explorer Hoodie", price: 59.99, rating: 4.5, reviewsCount: 42, category: "Hoodies", 
               image: "https://placehold.co/600x600/4B5563/FFFFFF?text=Grey+Hoodie+FRONT", 
               gallery: ["https://placehold.co/600x600/4B5563/FFFFFF?text=Grey+Hoodie+FRONT", "https://placehold.co/600x600/374151/FFFFFF?text=Grey+Hoodie+HOOD", "https://placehold.co/600x600/1F2937/FFFFFF?text=Grey+Hoodie+POCKET"],
-              sizes: ['XS', 'S', 'M', 'L'], colors: ['Heather Grey', 'Charcoal', 'Forest Green'] },
+              sizes: ['XS', 'S', 'M', 'L'], colors: ['Heather Grey', 'Charcoal', 'Forest Green'], stock: 3, tags: [] },
             { id: 3, name: "Essential Denim (Slim Fit)", price: 79.99, rating: 4.2, reviewsCount: 120, category: "Jeans", 
               image: "https://placehold.co/600x600/10B981/FFFFFF?text=Denim+Jeans", 
-              sizes: ['28/30', '30/32', '32/32', '34/34'], colors: ['Dark Wash', 'Light Wash'] },
+              sizes: ['28/30', '30/32', '32/32', '34/34'], colors: ['Dark Wash', 'Light Wash'], stock: 40, tags: ['New'] },
             { id: 4, name: "Plaid Overshirt (Autumn)", price: 49.99, rating: 4.9, reviewsCount: 55, category: "Shirts", 
               image: "https://placehold.co/600x600/F59E0B/FFFFFF?text=Plaid+Shirt", 
-              sizes: ['S', 'M', 'L'], colors: ['Red Plaid', 'Blue Plaid'] },
+              sizes: ['S', 'M', 'L'], colors: ['Red Plaid', 'Blue Plaid'], stock: 0, tags: [] },
             { id: 5, name: "Aero Joggers", price: 64.99, rating: 3.9, reviewsCount: 30, category: "Bottoms", 
               image: "https://placehold.co/600x600/8B5CF6/FFFFFF?text=Purple+Joggers", 
-              sizes: ['M', 'L', 'XL'], colors: ['Midnight Purple', 'Black'] },
+              sizes: ['M', 'L', 'XL'], colors: ['Midnight Purple', 'Black'], stock: 8, tags: [] },
             { id: 6, name: "Minimalist Sweater", price: 54.99, rating: 4.7, reviewsCount: 78, category: "Sweaters", 
               image: "https://placehold.co/600x600/EF4444/FFFFFF?text=Red+Sweater", 
-              sizes: ['S', 'M', 'L', 'XL'], colors: ['Crimson Red', 'Oatmeal Beige'] },
+              sizes: ['S', 'M', 'L', 'XL'], colors: ['Crimson Red', 'Oatmeal Beige'], stock: 1, tags: ['Low Stock'] },
         ];
         
         // Available Coupon Codes
@@ -444,7 +458,7 @@
         }
 
         /**
-         * NEW: Displays a transient toast notification on the top right.
+         * Displays a transient toast notification on the top right.
          * @param {string} message - The message to display.
          * @param {string} type - 'success' or 'error' for styling.
          */
@@ -582,7 +596,7 @@
         }
 
         /**
-         * NEW: Adds a product to the cart with size and color options.
+         * Adds a product to the cart with size and color options.
          * @param {number} id 
          * @param {number} quantity 
          * @param {string} size 
@@ -777,19 +791,47 @@
                 const heartColor = isWished ? 'fill-red-500 text-red-500' : 'text-gray-500';
                 const scaleColor = isCompared ? 'fill-yellow-500 text-yellow-500' : 'text-gray-500';
                 const ratingStars = generateRatingStars(product.rating);
+                
+                // NEW: Badges/Tags (Combines Category with other tags and Low Stock status)
+                let tags = []; 
+                if (product.tags) { tags = tags.concat(product.tags); }
+                // Auto-add 'Low Stock' badge if stock is low
+                if (product.stock > 0 && product.stock < 5 && !tags.includes('Low Stock')) {
+                     tags.push('Low Stock');
+                }
+                
+                // Ensure category is displayed first
+                tags.unshift(product.category);
+
+                // Filter out duplicates and format HTML
+                const uniqueTags = [...new Set(tags)];
+                let badgesHtml = uniqueTags.map(tag => {
+                    let tagClass = 'bg-indigo-600 text-white';
+                    if (tag === 'Low Stock') tagClass = 'bg-red-500 text-white';
+                    if (tag === 'New') tagClass = 'bg-green-500 text-white';
+                    if (tag === 'Best Seller') tagClass = 'bg-yellow-500 text-gray-900';
+                    if (tag === product.category) tagClass = 'bg-gray-900 text-white dark:bg-gray-200 dark:text-gray-900'; // Category badge style
+                    
+                    return `<span class="text-xs font-medium ${tagClass} px-2 py-1 rounded-full mr-1 mb-1">${tag}</span>`;
+                }).join('');
+
 
                 const productCard = `
                     <div class="product-card bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-1 flex flex-col justify-between border border-gray-100 dark:border-gray-700">
                         <div class="relative overflow-hidden">
                             <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover transition duration-500 hover:scale-105" onerror="this.onerror=null; this.src='https://placehold.co/600x600/E5E7EB/4B5563?text=Image+Missing';">
-                            <span class="absolute top-2 left-2 text-xs font-medium bg-indigo-600 text-white px-2 py-1 rounded-full">${product.category}</span>
+                            
+                            <!-- Product Badges (Category, New, Low Stock, etc.) -->
+                            <div class="absolute top-2 left-2 flex flex-wrap max-w-[80%]">
+                                ${badgesHtml}
+                            </div>
                             
                             <!-- Wishlist Toggle Button -->
                             <button onclick="toggleWishlist(${product.id})" class="absolute top-2 right-10 p-2 rounded-full bg-white dark:bg-gray-900/80 backdrop-blur-sm hover:bg-red-100 dark:hover:bg-red-900/50 transition shadow-md">
                                 <i data-lucide="heart" class="w-5 h-5 ${heartColor}"></i>
                             </button>
                             
-                            <!-- Comparison Toggle Button (NEW) -->
+                            <!-- Comparison Toggle Button -->
                             <button onclick="toggleComparison(${product.id})" class="absolute top-2 right-2 p-2 rounded-full bg-white dark:bg-gray-900/80 backdrop-blur-sm hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition shadow-md">
                                 <i data-lucide="scale" class="w-5 h-5 ${scaleColor}"></i>
                             </button>
@@ -853,7 +895,7 @@
         }
 
         /**
-         * Renders the Product Comparison Modal content. (NEW)
+         * Renders the Product Comparison Modal content.
          */
         function renderComparisonModal() {
             const container = document.getElementById('compare-items-container');
@@ -961,7 +1003,7 @@
                         const itemTotal = product.price * item.quantity;
                         subtotalPrice += itemTotal;
                         
-                        // NEW: Display size and color options
+                        // Display size and color options
                         const optionsText = item.size !== 'N/A' ? `${item.size} / ${item.color}` : '';
 
                         const cartItemHtml = `
@@ -1110,7 +1152,7 @@
         }
         
         /**
-         * Updates the comparison badge count in the header. (NEW)
+         * Updates the comparison badge count in the header.
          */
         function updateCompareCount() {
             const count = productsToCompareIds.length;
@@ -1188,6 +1230,56 @@
         // --- Quick View Modal & Review Functions ---
 
         /**
+         * NEW: Handles the image magnifier effect in the Quick View modal.
+         * @param {Event} event - The mouse event.
+         * @param {boolean} isOver - True if mouse is over the image, false on mouse leave.
+         * @param {string} largeImageUrl - The URL of the image to magnify.
+         */
+        function handleImageMagnify(event, isOver, largeImageUrl) {
+            const lens = document.getElementById('magnifier-lens');
+            const mainImageContainer = event.currentTarget;
+            
+            if (!lens || !mainImageContainer) return;
+
+            if (!isOver) {
+                lens.style.opacity = '0';
+                return;
+            }
+
+            // Set the background image on the lens
+            lens.style.backgroundImage = `url('${largeImageUrl}')`;
+            lens.style.opacity = '1';
+
+            // Get dimensions of the main image container
+            const rect = mainImageContainer.getBoundingClientRect();
+            
+            // Calculate cursor position relative to the container
+            const x = event.clientX - rect.left; 
+            const y = event.clientY - rect.top;
+
+            const zoomFactor = 2; 
+            const lensSize = 150; 
+            
+            // 1. Position the lens container: center it around the cursor, but keep it within bounds
+            const lensX = Math.max(0, Math.min(rect.width - lensSize, x - (lensSize / 2)));
+            const lensY = Math.max(0, Math.min(rect.height - lensSize, y - (lensSize / 2)));
+            
+            lens.style.left = `${lensX}px`;
+            lens.style.top = `${lensY}px`;
+            
+            // 2. Position the magnified background inside the lens:
+            // Calculate position of the cursor relative to the image itself
+            const cursorX = x;
+            const cursorY = y;
+
+            const backgroundX = -cursorX * (zoomFactor - 1);
+            const backgroundY = -cursorY * (zoomFactor - 1);
+            
+            lens.style.backgroundPosition = `${backgroundX}px ${backgroundY}px`;
+            lens.style.backgroundSize = `${rect.width * zoomFactor}px ${rect.height * zoomFactor}px`;
+        }
+
+        /**
          * Submits a simulated review for the product.
          * @param {number} productId - The ID of the product being reviewed.
          */
@@ -1238,18 +1330,30 @@
         }
 
         /**
-         * NEW: Handles adding the product from quick view with selected options.
+         * Handles adding the product from quick view with selected options.
          * @param {number} id - Product ID
          */
         function quickViewAddToCart(id) {
+            const product = getProductById(id);
+            
+            // Check stock before adding to cart
+            if (product.stock <= 0) {
+                showToast(`Cannot add ${product.name}. Currently Out of Stock.`, 'error');
+                return;
+            }
+            
             const sizeSelect = document.getElementById(`size-select-${id}`);
             const colorSelect = document.getElementById(`color-select-${id}`);
             
             const size = sizeSelect ? sizeSelect.value : 'N/A';
             const color = colorSelect ? colorSelect.value : 'Default';
 
-            if (size === '' || color === '') {
-                 showToast('Please select both Size and Color.', 'error');
+            if (product.sizes && size === '') {
+                 showToast('Please select a Size.', 'error');
+                 return;
+            }
+            if (product.colors && color === '') {
+                 showToast('Please select a Color.', 'error');
                  return;
             }
 
@@ -1259,7 +1363,7 @@
         }
         
         /**
-         * NEW: Simulates tracking a price for a product.
+         * Simulates tracking a price for a product.
          * @param {number} id - Product ID
          */
         function trackPrice(id) {
@@ -1324,7 +1428,7 @@
 
             const ratingStars = generateRatingStars(product.rating);
             
-            // NEW: Options Selectors
+            // Options Selectors
             const sizesHtml = (product.sizes || []).map(size => `<option value="${size}">${size}</option>`).join('');
             const colorsHtml = (product.colors || []).map(color => `<option value="${color}">${color}</option>`).join('');
             
@@ -1349,11 +1453,63 @@
                 </div>
             `;
             
+            // NEW: Stock Status Logic
+            let stockStatus = '';
+            let stockClass = '';
+            let isOutOfStock = false;
+            if (product.stock > 10) {
+                stockStatus = 'In Stock';
+                stockClass = 'text-green-600 bg-green-100 dark:bg-green-900/50';
+            } else if (product.stock > 0) {
+                stockStatus = `Low Stock (${product.stock} left)`;
+                stockClass = 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/50';
+            } else {
+                stockStatus = 'Out of Stock';
+                stockClass = 'text-red-600 bg-red-100 dark:bg-red-900/50';
+                isOutOfStock = true;
+            }
+
+            const stockHtml = `
+                <span class="text-sm font-semibold px-3 py-1 rounded-full ${stockClass} mt-3 inline-block">
+                    <i data-lucide="${!isOutOfStock ? 'check-circle' : 'alert-circle'}" class="w-4 h-4 inline mr-1"></i>
+                    ${stockStatus}
+                </span>
+            `;
+            
+            // Price Tracking Button State
             const isPriceTracked = priceTrackedIds.includes(id);
             const trackBtnClass = isPriceTracked ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600';
             const trackBtnText = isPriceTracked ? 'Price Tracking Active' : 'Track Price Drop';
             const trackBtnIcon = isPriceTracked ? 'bell-off' : 'bell';
             const trackBtnTextColor = isPriceTracked ? 'text-white' : 'text-gray-800 dark:text-gray-200';
+            
+            // Image Gallery with Magnifier
+            const imageGalleryHtml = `
+                <div class="order-1">
+                    <!-- Main Image Container with Magnifier -->
+                    <div class="image-magnifier-container relative w-full aspect-square rounded-xl overflow-hidden shadow-lg mb-4">
+                        <img id="quickview-main-image" 
+                            src="${firstImage}" 
+                            alt="${product.name}" 
+                            class="w-full h-full object-cover transition duration-300"
+                            onerror="this.onerror=null; this.src='https://placehold.co/600x600/E5E7EB/4B5563?text=Image+Missing';">
+
+                        <!-- Magnifier Lens -->
+                        <div id="magnifier-lens"></div>
+
+                        <!-- Mouse Trap for Magnifier -->
+                        <div class="absolute inset-0 cursor-crosshair"
+                            onmousemove="handleImageMagnify(event, true, '${firstImage}')" 
+                            onmouseleave="handleImageMagnify(event, false)">
+                        </div>
+                    </div>
+                    
+                    <!-- Thumbnails/Gallery Controls -->
+                    <div class="flex space-x-3 overflow-x-auto pb-2">
+                        ${thumbnailsHtml}
+                    </div>
+                </div>
+            `;
             
             const modalContent = `
                 <div class="p-6">
@@ -1371,16 +1527,8 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <!-- Left Column: Image Gallery -->
-                        <div class="order-1">
-                            <!-- Main Image Display -->
-                            <img id="quickview-main-image" src="${firstImage}" alt="${product.name}" class="w-full h-auto rounded-xl object-cover shadow-lg mb-4" onerror="this.onerror=null; this.src='https://placehold.co/600x600/E5E7EB/4B5563?text=Image+Missing';">
-                            
-                            <!-- Thumbnails/Gallery Controls -->
-                            <div class="flex space-x-3 overflow-x-auto pb-2">
-                                ${thumbnailsHtml}
-                            </div>
-                        </div>
+                        <!-- Left Column: Image Gallery (with Magnifier) -->
+                        ${imageGalleryHtml}
                         
                         <!-- Right Column: Details & Actions -->
                         <div class="order-2 flex flex-col justify-between">
@@ -1395,22 +1543,24 @@
                                     <span class="text-sm text-gray-500 dark:text-gray-400">(${product.reviewsCount + (sessionReviews[id]?.length || 0)} Reviews)</span>
                                 </div>
 
-                                <p class="text-4xl font-extrabold text-indigo-600 my-4">$${product.price.toFixed(2)}</p>
-                                <p class="text-gray-600 dark:text-gray-300 mb-6">Ultra-soft, sustainable fabric designed for maximum comfort and style. Perfect for everyday wear or your next adventure. Limited stock available in this run.</p>
+                                <p class="text-4xl font-extrabold text-indigo-600 mb-0">$${product.price.toFixed(2)}</p>
+                                ${stockHtml}
                                 
-                                <!-- NEW: Options Section -->
+                                <p class="text-gray-600 dark:text-gray-300 my-6">Ultra-soft, sustainable fabric designed for maximum comfort and style. Perfect for everyday wear or your next adventure. Limited stock available in this run.</p>
+                                
+                                <!-- Options Section -->
                                 ${product.sizes ? optionsSection : ''}
                             </div>
                             
                             <!-- Action Buttons -->
                             <div class="mt-auto space-y-3">
                                 <button onclick="quickViewAddToCart(${product.id});" 
-                                    class="w-full bg-indigo-600 text-white p-4 rounded-xl text-lg font-semibold hover:bg-indigo-700 transition duration-200 flex items-center justify-center space-x-2 shadow-xl transform hover:scale-[1.01]">
+                                    class="w-full bg-indigo-600 text-white p-4 rounded-xl text-lg font-semibold hover:bg-indigo-700 transition duration-200 flex items-center justify-center space-x-2 shadow-xl transform hover:scale-[1.01] ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}" ${isOutOfStock ? 'disabled' : ''}>
                                     <i data-lucide="shopping-cart" class="w-5 h-5"></i>
-                                    <span>Add to Cart</span>
+                                    <span>${isOutOfStock ? 'Out of Stock' : 'Add to Cart'}</span>
                                 </button>
                                 
-                                <!-- NEW: Track Price Button -->
+                                <!-- Track Price Button -->
                                 <button onclick="trackPrice(${product.id})" 
                                     class="w-full ${trackBtnClass} ${trackBtnTextColor} p-3 rounded-xl text-sm font-semibold transition duration-200 flex items-center justify-center space-x-2 shadow-md">
                                     <i data-lucide="${trackBtnIcon}" class="w-4 h-4"></i>
@@ -1464,8 +1614,8 @@
             // Set initial options for quick buy selectors
             const initialSize = product.sizes?.[0];
             const initialColor = product.colors?.[0];
-            if (initialSize) document.getElementById(`size-select-${id}`).value = initialSize;
-            if (initialColor) document.getElementById(`color-select-${id}`).value = initialColor;
+            if (initialSize && document.getElementById(`size-select-${id}`)) document.getElementById(`size-select-${id}`).value = initialSize;
+            if (initialColor && document.getElementById(`color-select-${id}`)) document.getElementById(`color-select-${id}`).value = initialColor;
         }
 
         function closeQuickView() {
@@ -1489,7 +1639,7 @@
             applyFilters(); 
             updateCartCount();
             updateWishlistCount();
-            updateCompareCount(); // NEW
+            updateCompareCount(); 
             renderCart(); 
             renderWishlist(); 
             renderRecentlyViewed(); 
