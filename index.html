@@ -21,7 +21,7 @@
         }
 
         /* Modal backdrop styling */
-        #cart-modal-backdrop, #wishlist-modal-backdrop, #quickview-modal-backdrop {
+        #cart-modal-backdrop, #wishlist-modal-backdrop, #quickview-modal-backdrop, #compare-modal-backdrop {
             transition: opacity 0.3s ease-in-out;
             pointer-events: none;
             z-index: 50; 
@@ -41,6 +41,10 @@
         .show-quickview #quickview-modal-backdrop { opacity: 1; pointer-events: auto; }
         .show-quickview #quickview-modal { transform: scale(1); opacity: 1; }
 
+        /* Compare Modal styling */
+        .show-compare #compare-modal-backdrop { opacity: 1; pointer-events: auto; }
+        .show-compare #compare-modal { transform: translateY(0); opacity: 1; }
+
         /* Custom scrollbar styling for the product grid on smaller screens */
         @media (max-width: 768px) {
             #product-grid {
@@ -54,7 +58,7 @@
             }
         }
         
-        /* FIX: NEW: Review Star Rating System CSS for reliable interaction */
+        /* Review Star Rating System CSS for reliable interaction */
         .rating-container {
             display: inline-flex;
             flex-direction: row-reverse;
@@ -79,6 +83,32 @@
         .rating-container input:checked ~ label {
             color: #FBBF24;
         }
+
+        /* Toast Notifications Container */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-width: 250px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            font-weight: 500;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
     </style>
 </head>
 <!-- Apply dark class dynamically to enable dark mode -->
@@ -97,6 +127,12 @@
                 <!-- Dark Mode Toggle -->
                 <button id="dark-mode-toggle" onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-150">
                     <i id="dark-mode-icon" data-lucide="moon" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
+                </button>
+
+                <!-- Product Comparison Button -->
+                <button id="compare-button" onclick="toggleComparisonModal()" class="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-150">
+                    <span id="compare-count" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-yellow-500 rounded-full opacity-0 transition-opacity duration-300">0</span>
+                    <i data-lucide="scale" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                 </button>
                 
                 <!-- Wishlist Button -->
@@ -165,7 +201,7 @@
             <!-- Product cards will be injected here by JavaScript -->
         </section>
 
-        <!-- Recently Viewed Products Section (NEW) -->
+        <!-- Recently Viewed Products Section -->
         <section id="recently-viewed-section" class="mt-20 hidden">
             <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6 border-b pb-2 border-gray-200 dark:border-gray-700">
                 Recently Viewed
@@ -194,7 +230,7 @@
                         <li><a href="#" class="hover:text-indigo-400 transition">Size Guide</a></li>
                     </ul>
                 </div>
-                <!-- Column 3: Newsletter Sign-up Simulation (NEW) -->
+                <!-- Column 3: Newsletter Sign-up Simulation -->
                 <div class="col-span-2 md:col-span-1">
                     <h4 class="font-semibold mb-4 border-b border-indigo-700 pb-1">Get 15% Off</h4>
                     <p class="text-sm text-gray-300 mb-3">Sign up for exclusive offers and updates.</p>
@@ -223,6 +259,9 @@
         </div>
     </footer>
     
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
     <!-- Wishlist Modal (Left Side) -->
     <div id="wishlist-modal-backdrop" onclick="toggleWishlistModal()" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm opacity-0 hidden transition duration-300">
         <div id="wishlist-modal" onclick="event.stopPropagation()" class="fixed top-0 left-0 w-full md:w-96 h-full bg-white dark:bg-gray-800 shadow-2xl transform transition duration-500 ease-in-out">
@@ -277,19 +316,53 @@
             <!-- Modal content will be injected here by openQuickView() -->
         </div>
     </div>
+    
+    <!-- Product Comparison Modal (NEW) -->
+    <div id="compare-modal-backdrop" onclick="closeComparisonModal()" class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm opacity-0 hidden transition duration-300 flex items-center justify-center p-4">
+        <div id="compare-modal" onclick="event.stopPropagation()" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto transform scale-90 opacity-0 transition duration-300 ease-in-out">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4 border-b pb-3 dark:border-gray-700">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Product Comparison (<span id="compare-count-modal">0</span> / 3)</h3>
+                    <button onclick="closeComparisonModal()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <i data-lucide="x" class="w-6 h-6 text-gray-600 dark:text-gray-300"></i>
+                    </button>
+                </div>
+                <div id="compare-items-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Comparison items will be injected here -->
+                </div>
+                <div class="mt-6 pt-4 border-t dark:border-gray-700 flex justify-end">
+                    <button onclick="clearComparison()" class="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition shadow-md">
+                        Clear All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- JavaScript for Store Logic -->
     <script>
-        // Store Product Data - Added rating/review fields
+        // Store Product Data - Added sizes and colors for options
         const PRODUCTS = [
-            { id: 1, name: "The Classic Tee (Navy)", price: 29.99, rating: 4.8, reviewsCount: 94, image: "https://placehold.co/600x600/3B82F6/FFFFFF?text=Navy+Tee+FRONT", category: "T-Shirts", 
-              gallery: ["https://placehold.co/600x600/3B82F6/FFFFFF?text=Navy+Tee+FRONT", "https://placehold.co/600x600/2563EB/FFFFFF?text=Navy+Tee+BACK", "https://placehold.co/600x600/1D4ED8/FFFFFF?text=Navy+Tee+DETAIL"] },
-            { id: 2, name: "Urban Explorer Hoodie", price: 59.99, rating: 4.5, reviewsCount: 42, image: "https://placehold.co/600x600/4B5563/FFFFFF?text=Grey+Hoodie+FRONT", category: "Hoodies", 
-              gallery: ["https://placehold.co/600x600/4B5563/FFFFFF?text=Grey+Hoodie+FRONT", "https://placehold.co/600x600/374151/FFFFFF?text=Grey+Hoodie+HOOD", "https://placehold.co/600x600/1F2937/FFFFFF?text=Grey+Hoodie+POCKET"] },
-            { id: 3, name: "Essential Denim (Slim Fit)", price: 79.99, rating: 4.2, reviewsCount: 120, image: "https://placehold.co/600x600/10B981/FFFFFF?text=Denim+Jeans", category: "Jeans" },
-            { id: 4, name: "Plaid Overshirt (Autumn)", price: 49.99, rating: 4.9, reviewsCount: 55, image: "https://placehold.co/600x600/F59E0B/FFFFFF?text=Plaid+Shirt", category: "Shirts" },
-            { id: 5, name: "Aero Joggers", price: 64.99, rating: 3.9, reviewsCount: 30, image: "https://placehold.co/600x600/8B5CF6/FFFFFF?text=Purple+Joggers", category: "Bottoms" },
-            { id: 6, name: "Minimalist Sweater", price: 54.99, rating: 4.7, reviewsCount: 78, image: "https://placehold.co/600x600/EF4444/FFFFFF?text=Red+Sweater", category: "Sweaters" },
+            { id: 1, name: "The Classic Tee (Navy)", price: 29.99, rating: 4.8, reviewsCount: 94, category: "T-Shirts", 
+              image: "https://placehold.co/600x600/3B82F6/FFFFFF?text=Navy+Tee+FRONT", 
+              gallery: ["https://placehold.co/600x600/3B82F6/FFFFFF?text=Navy+Tee+FRONT", "https://placehold.co/600x600/2563EB/FFFFFF?text=Navy+Tee+BACK", "https://placehold.co/600x600/1D4ED8/FFFFFF?text=Navy+Tee+DETAIL"],
+              sizes: ['S', 'M', 'L', 'XL'], colors: ['Navy (Blue)', 'White', 'Black'] },
+            { id: 2, name: "Urban Explorer Hoodie", price: 59.99, rating: 4.5, reviewsCount: 42, category: "Hoodies", 
+              image: "https://placehold.co/600x600/4B5563/FFFFFF?text=Grey+Hoodie+FRONT", 
+              gallery: ["https://placehold.co/600x600/4B5563/FFFFFF?text=Grey+Hoodie+FRONT", "https://placehold.co/600x600/374151/FFFFFF?text=Grey+Hoodie+HOOD", "https://placehold.co/600x600/1F2937/FFFFFF?text=Grey+Hoodie+POCKET"],
+              sizes: ['XS', 'S', 'M', 'L'], colors: ['Heather Grey', 'Charcoal', 'Forest Green'] },
+            { id: 3, name: "Essential Denim (Slim Fit)", price: 79.99, rating: 4.2, reviewsCount: 120, category: "Jeans", 
+              image: "https://placehold.co/600x600/10B981/FFFFFF?text=Denim+Jeans", 
+              sizes: ['28/30', '30/32', '32/32', '34/34'], colors: ['Dark Wash', 'Light Wash'] },
+            { id: 4, name: "Plaid Overshirt (Autumn)", price: 49.99, rating: 4.9, reviewsCount: 55, category: "Shirts", 
+              image: "https://placehold.co/600x600/F59E0B/FFFFFF?text=Plaid+Shirt", 
+              sizes: ['S', 'M', 'L'], colors: ['Red Plaid', 'Blue Plaid'] },
+            { id: 5, name: "Aero Joggers", price: 64.99, rating: 3.9, reviewsCount: 30, category: "Bottoms", 
+              image: "https://placehold.co/600x600/8B5CF6/FFFFFF?text=Purple+Joggers", 
+              sizes: ['M', 'L', 'XL'], colors: ['Midnight Purple', 'Black'] },
+            { id: 6, name: "Minimalist Sweater", price: 54.99, rating: 4.7, reviewsCount: 78, category: "Sweaters", 
+              image: "https://placehold.co/600x600/EF4444/FFFFFF?text=Red+Sweater", 
+              sizes: ['S', 'M', 'L', 'XL'], colors: ['Crimson Red', 'Oatmeal Beige'] },
         ];
         
         // Available Coupon Codes
@@ -300,17 +373,21 @@
         };
 
         // Global State (persisted with localStorage)
+        // Cart item structure now includes 'size' and 'color'
         let cart = JSON.parse(localStorage.getItem('stellarThreadsCart')) || [];
         let wishlist = JSON.parse(localStorage.getItem('stellarThreadsWishlist')) || [];
         let recentlyViewedIds = JSON.parse(localStorage.getItem('recentlyViewedIds')) || []; 
+        let productsToCompareIds = JSON.parse(localStorage.getItem('productsToCompareIds')) || []; 
+        let priceTrackedIds = JSON.parse(localStorage.getItem('priceTrackedIds')) || [];
 
         // Global State (session only)
         let appliedCoupon = { code: null, discountPercentage: 0, message: '' }; 
         let displayedProducts = [...PRODUCTS]; 
-        // Simulated reviews storage, just for the session. Key: productId, Value: array of review objects.
+        // Simulated reviews storage, just for the session.
         let sessionReviews = {}; 
 
         const MAX_RECENTLY_VIEWED = 5;
+        const MAX_COMPARE = 3;
 
         // --- Core Utility Functions ---
 
@@ -331,7 +408,16 @@
         function checkIfInWishlist(id) {
             return wishlist.some(item => item.id === id);
         }
-        
+
+        /**
+         * Checks if a product is currently selected for comparison.
+         * @param {number} id - The product ID.
+         * @returns {boolean} True if in comparison list.
+         */
+        function checkIfInComparison(id) {
+            return productsToCompareIds.includes(id);
+        }
+
         /**
          * Generates star icons HTML based on a rating value.
          * @param {number} rating - The rating value (0-5).
@@ -339,27 +425,66 @@
          */
         function generateRatingStars(rating) {
             const fullStars = Math.floor(rating);
-            // Check for half star (e.g., 4.2 -> 4, 4.5 -> 4.5, 4.8 -> 5)
             const halfStar = rating % 1 >= 0.25 && rating % 1 <= 0.75; 
             const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
             
             let starsHtml = '';
 
-            // Full stars
             for (let i = 0; i < fullStars; i++) {
                 starsHtml += '<i data-lucide="star" class="w-4 h-4 fill-yellow-500 text-yellow-500"></i>';
             }
-            // Half star
             if (halfStar) {
                 starsHtml += '<i data-lucide="star-half" class="w-4 h-4 fill-yellow-500 text-yellow-500"></i>';
             }
-            // Empty stars
             for (let i = 0; i < emptyStars; i++) {
                 starsHtml += '<i data-lucide="star" class="w-4 h-4 text-gray-300 dark:text-gray-600"></i>';
             }
 
             return starsHtml;
         }
+
+        /**
+         * NEW: Displays a transient toast notification on the top right.
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success' or 'error' for styling.
+         */
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgColor = '';
+            let iconHtml = '';
+
+            if (type === 'success') {
+                bgColor = 'bg-green-600';
+                iconHtml = '<i data-lucide="check-circle" class="w-5 h-5 mr-2"></i>';
+            } else if (type === 'error') {
+                bgColor = 'bg-red-600';
+                iconHtml = '<i data-lucide="x-octagon" class="w-5 h-5 mr-2"></i>';
+            } else if (type === 'info') {
+                bgColor = 'bg-indigo-600';
+                iconHtml = '<i data-lucide="info" class="w-5 h-5 mr-2"></i>';
+            }
+
+            toast.className = `toast ${bgColor} flex items-center`;
+            toast.innerHTML = `${iconHtml}<span>${message}</span>`;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            // Show and then hide after a delay
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    container.removeChild(toast);
+                }, 400); // Wait for transition to finish
+            }, 3000); // Display duration
+        }
+
 
         // --- State Management ---
 
@@ -376,18 +501,23 @@
             renderProducts(); 
         }
 
+        function updateCompareState() {
+            localStorage.setItem('productsToCompareIds', JSON.stringify(productsToCompareIds));
+            updateCompareCount();
+            renderProducts(); // Update the compare buttons on the grid
+        }
+        
+        function updatePriceTrackedState() {
+            localStorage.setItem('priceTrackedIds', JSON.stringify(priceTrackedIds));
+        }
+
         /**
-         * Adds a product ID to the recently viewed list. (NEW)
+         * Adds a product ID to the recently viewed list.
          * @param {number} id - The product ID.
          */
         function addRecentlyViewed(id) {
-            // Remove existing item to ensure it's at the start
             recentlyViewedIds = recentlyViewedIds.filter(itemId => itemId !== id);
-            
-            // Add to the front
             recentlyViewedIds.unshift(id);
-            
-            // Limit the length
             if (recentlyViewedIds.length > MAX_RECENTLY_VIEWED) {
                 recentlyViewedIds = recentlyViewedIds.slice(0, MAX_RECENTLY_VIEWED);
             }
@@ -403,27 +533,29 @@
             const index = wishlist.findIndex(item => item.id === id);
             
             if (index > -1) {
-                // Remove from wishlist
                 wishlist.splice(index, 1);
+                showToast('Item removed from Wishlist.', 'error');
             } else {
-                // Add to wishlist
                 wishlist.push({ id });
+                showToast('Item added to Wishlist!', 'success');
             }
             updateWishlistState();
         }
 
         function moveToCart(id) {
-            addToCart(id, 1);
+            const product = getProductById(id);
+            if (!product) return;
+
+            // When moving from wishlist, just use the first available size/color options
+            const size = product.sizes?.[0] || 'N/A';
+            const color = product.colors?.[0] || 'Default';
             
-            // Remove from wishlist
+            addToCart(id, 1, size, color);
+            
             wishlist = wishlist.filter(item => item.id !== id);
             updateWishlistState();
-
-            // Open the cart modal if it's closed
-            const body = document.getElementById('body-container');
-            if (!body.classList.contains('show-cart')) {
-                toggleCart();
-            }
+            toggleCart();
+            showToast(`Moved ${product.name} to Cart.`, 'info');
         }
 
         function toggleWishlistModal() {
@@ -432,6 +564,7 @@
 
             if (body.classList.contains('show-cart')) toggleCart();
             if (body.classList.contains('show-quickview')) closeQuickView();
+            if (body.classList.contains('show-compare')) closeComparisonModal();
             
             if (modalBackdrop.classList.contains('hidden')) {
                 modalBackdrop.classList.remove('hidden');
@@ -448,85 +581,158 @@
             }
         }
 
-        function addToCart(id, quantity = 1) {
-            const existingItem = cart.find(item => item.id === id);
+        /**
+         * NEW: Adds a product to the cart with size and color options.
+         * @param {number} id 
+         * @param {number} quantity 
+         * @param {string} size 
+         * @param {string} color 
+         */
+        function addToCart(id, quantity = 1, size = 'N/A', color = 'Default') {
+            const product = getProductById(id);
+            if (!product) return;
+
+            const existingItem = cart.find(item => item.id === id && item.size === size && item.color === color);
             
             if (existingItem) {
                 existingItem.quantity += quantity;
             } else {
-                cart.push({ id, quantity });
+                // Generate a unique item ID for the cart (important for options)
+                const cartItemId = `${id}-${size}-${color}-${Date.now()}`;
+                cart.push({ id, cartItemId, quantity, size, color });
             }
             updateCartState();
+            showToast(`${product.name} (${size}, ${color}) added to cart!`, 'success');
         }
 
-        function changeQuantity(id, change) {
-            const existingItem = cart.find(item => item.id === id);
+        function changeQuantity(cartItemId, change) {
+            const existingItem = cart.find(item => item.cartItemId === cartItemId);
             
             if (existingItem) {
                 existingItem.quantity += change;
                 if (existingItem.quantity <= 0) {
-                    removeFromCart(id);
+                    removeFromCart(cartItemId);
                 }
             }
             updateCartState();
         }
 
-        function removeFromCart(id) {
-            cart = cart.filter(item => item.id !== id);
+        function removeFromCart(cartItemId) {
+            cart = cart.filter(item => item.cartItemId !== cartItemId);
             updateCartState();
         }
 
-        /**
-         * FIX: Adds a simulation for the checkout process.
-         */
         function checkout() {
             if (cart.length === 0) {
-                console.warn('Checkout failed: Cart is empty.');
-                // In a real app, display a message box/modal here instead of alert/console.
+                showToast('Cart is empty. Please add items to checkout.', 'error');
                 return;
             }
             
-            console.log('Checkout initiated for:', cart);
-            
-            // Simulating a successful purchase
-            cart = []; // Empty the cart
+            cart = []; 
             appliedCoupon = { code: null, discountPercentage: 0, message: '' };
             updateCartState();
             
-            // Close the cart modal
             toggleCart();
-            
-            // Show a success message simulation
-            console.log('Transaction Successful! Cart emptied and order placed.');
+            showToast('Checkout simulated. Order placed successfully!', 'success');
         }
 
         function applyCoupon() {
             const codeInput = document.getElementById('coupon-code');
             const code = codeInput.value.toUpperCase().trim();
-            const messageElement = document.getElementById('coupon-message');
-
+            
             if (VALID_COUPONS[code]) {
                 appliedCoupon = { 
                     code: code, 
                     discountPercentage: VALID_COUPONS[code], 
                     message: `Success! ${code} applied for ${VALID_COUPONS[code] * 100}% off.`
                 };
+                showToast(`Coupon ${code} applied.`, 'success');
             } else {
                 appliedCoupon = { 
                     code: null, 
                     discountPercentage: 0, 
                     message: `Coupon code "${code}" is invalid or expired.`
                 };
+                showToast(`Invalid coupon code: ${code}`, 'error');
             }
-            renderCart(); // Re-render to show updated totals and coupon state
+            renderCart(); 
         }
 
         function removeCoupon() {
              appliedCoupon = { code: null, discountPercentage: 0, message: 'Coupon removed.' };
              document.getElementById('coupon-code').value = '';
              renderCart();
+             showToast('Coupon removed.', 'info');
+        }
+        
+        // --- Comparison Logic (NEW) ---
+
+        /**
+         * Adds or removes a product from the comparison list.
+         * @param {number} id - The product ID.
+         */
+        function toggleComparison(id) {
+            const index = productsToCompareIds.indexOf(id);
+            const product = getProductById(id);
+
+            if (index > -1) {
+                // Remove
+                productsToCompareIds.splice(index, 1);
+                showToast(`${product.name} removed from comparison.`, 'info');
+            } else {
+                // Add, only if limit not reached
+                if (productsToCompareIds.length < MAX_COMPARE) {
+                    productsToCompareIds.push(id);
+                    showToast(`${product.name} added to comparison! (${productsToCompareIds.length}/${MAX_COMPARE})`, 'success');
+                } else {
+                    showToast(`Comparison limit reached (${MAX_COMPARE} items).`, 'error');
+                }
+            }
+            updateCompareState();
+        }
+        
+        function clearComparison() {
+            productsToCompareIds = [];
+            updateCompareState();
+            renderComparisonModal();
+            showToast('Comparison list cleared.', 'info');
         }
 
+        function toggleComparisonModal() {
+            const modalBackdrop = document.getElementById('compare-modal-backdrop');
+            const body = document.getElementById('body-container');
+
+            if (body.classList.contains('show-cart')) toggleCart();
+            if (body.classList.contains('show-wishlist')) toggleWishlistModal();
+            if (body.classList.contains('show-quickview')) closeQuickView();
+
+            if (modalBackdrop.classList.contains('hidden')) {
+                renderComparisonModal(); // Render before showing
+                modalBackdrop.classList.remove('hidden');
+                setTimeout(() => {
+                    body.classList.add('show-compare');
+                    body.classList.add('overflow-hidden');
+                }, 10);
+            } else {
+                body.classList.remove('show-compare');
+                body.classList.remove('overflow-hidden');
+                setTimeout(() => {
+                    modalBackdrop.classList.add('hidden');
+                }, 500);
+            }
+        }
+        
+        function closeComparisonModal() {
+             const body = document.getElementById('body-container');
+            
+            body.classList.remove('show-compare');
+            body.classList.remove('overflow-hidden');
+
+            setTimeout(() => {
+                document.getElementById('compare-modal-backdrop').classList.add('hidden');
+            }, 300); 
+        }
+        
         // --- Filtering and Sorting Logic ---
 
         function applyFilters() {
@@ -567,7 +773,9 @@
 
             displayedProducts.forEach(product => {
                 const isWished = checkIfInWishlist(product.id);
+                const isCompared = checkIfInComparison(product.id);
                 const heartColor = isWished ? 'fill-red-500 text-red-500' : 'text-gray-500';
+                const scaleColor = isCompared ? 'fill-yellow-500 text-yellow-500' : 'text-gray-500';
                 const ratingStars = generateRatingStars(product.rating);
 
                 const productCard = `
@@ -577,8 +785,13 @@
                             <span class="absolute top-2 left-2 text-xs font-medium bg-indigo-600 text-white px-2 py-1 rounded-full">${product.category}</span>
                             
                             <!-- Wishlist Toggle Button -->
-                            <button onclick="toggleWishlist(${product.id})" class="absolute top-2 right-2 p-2 rounded-full bg-white dark:bg-gray-900/80 backdrop-blur-sm hover:bg-red-100 dark:hover:bg-red-900/50 transition shadow-md">
+                            <button onclick="toggleWishlist(${product.id})" class="absolute top-2 right-10 p-2 rounded-full bg-white dark:bg-gray-900/80 backdrop-blur-sm hover:bg-red-100 dark:hover:bg-red-900/50 transition shadow-md">
                                 <i data-lucide="heart" class="w-5 h-5 ${heartColor}"></i>
+                            </button>
+                            
+                            <!-- Comparison Toggle Button (NEW) -->
+                            <button onclick="toggleComparison(${product.id})" class="absolute top-2 right-2 p-2 rounded-full bg-white dark:bg-gray-900/80 backdrop-blur-sm hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition shadow-md">
+                                <i data-lucide="scale" class="w-5 h-5 ${scaleColor}"></i>
                             </button>
 
                         </div>
@@ -591,16 +804,11 @@
                             <p class="text-2xl font-bold text-indigo-600 mb-3">$${product.price.toFixed(2)}</p>
                             
                             <!-- Buttons -->
-                            <div class="mt-auto flex space-x-2">
+                            <div class="mt-auto">
                                 <button onclick="openQuickView(${product.id})" 
-                                    class="w-1/2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 p-3 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-200 flex items-center justify-center space-x-1 shadow-sm text-sm">
+                                    class="w-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 p-3 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-200 flex items-center justify-center space-x-1 shadow-sm text-sm">
                                     <i data-lucide="eye" class="w-4 h-4"></i>
                                     <span>Quick View</span>
-                                </button>
-                                <button onclick="addToCart(${product.id})" 
-                                    class="w-1/2 bg-indigo-600 text-white p-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-200 flex items-center justify-center space-x-1 shadow-md text-sm">
-                                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                                    <span>Add</span>
                                 </button>
                             </div>
                         </div>
@@ -645,6 +853,63 @@
         }
 
         /**
+         * Renders the Product Comparison Modal content. (NEW)
+         */
+        function renderComparisonModal() {
+            const container = document.getElementById('compare-items-container');
+            const countEl = document.getElementById('compare-count-modal');
+            container.innerHTML = '';
+            
+            countEl.textContent = productsToCompareIds.length;
+            const productIds = productsToCompareIds;
+            const placeholdersNeeded = MAX_COMPARE - productIds.length;
+
+            // 1. Render actual products
+            productIds.forEach(id => {
+                const product = getProductById(id);
+                if (!product) return;
+                
+                const ratingStars = generateRatingStars(product.rating);
+
+                const productHtml = `
+                    <div class="p-4 border rounded-lg dark:border-gray-700 flex flex-col items-center text-center bg-gray-50 dark:bg-gray-700">
+                        <img src="${product.image}" alt="${product.name}" class="w-24 h-24 object-cover rounded-lg mb-3" onerror="this.onerror=null; this.src='https://placehold.co/200x200/E5E7EB/4B5563?text=N/A';">
+                        <h4 class="text-xl font-bold mb-2 text-gray-900 dark:text-white">${product.name}</h4>
+                        <button onclick="toggleComparison(${product.id}); renderComparisonModal();" class="text-red-500 hover:text-red-700 mb-3 text-sm">
+                            <i data-lucide="x-circle" class="w-4 h-4 inline mr-1"></i> Remove
+                        </button>
+                        
+                        <div class="w-full space-y-2 text-left text-gray-600 dark:text-gray-300">
+                            <p class="font-bold text-indigo-600 dark:text-indigo-400 text-2xl border-t pt-2">$${product.price.toFixed(2)}</p>
+                            <div class="flex items-center">
+                                <span class="font-medium mr-2">Rating:</span>
+                                <div class="flex">${ratingStars}</div>
+                            </div>
+                            <p><span class="font-medium">Reviews:</span> ${product.reviewsCount}</p>
+                            <p><span class="font-medium">Category:</span> ${product.category}</p>
+                            <p><span class="font-medium">Sizes:</span> ${product.sizes ? product.sizes.join(', ') : 'N/A'}</p>
+                            <p><span class="font-medium">Colors:</span> ${product.colors ? product.colors.join(', ') : 'Default'}</p>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', productHtml);
+            });
+
+            // 2. Render placeholders
+            for (let i = 0; i < placeholdersNeeded; i++) {
+                const placeholderHtml = `
+                    <div class="p-4 border border-dashed rounded-lg border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center min-h-[300px]">
+                        <i data-lucide="plus-circle" class="w-8 h-8 text-gray-400 mb-2"></i>
+                        <p class="text-gray-500 font-medium">Add a product to compare</p>
+                        <p class="text-sm text-gray-400">Use the scale icon on the product grid.</p>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', placeholderHtml);
+            }
+            lucide.createIcons();
+        }
+
+        /**
          * Toggles the visibility of the cart modal.
          */
         function toggleCart() {
@@ -653,6 +918,7 @@
             
             if (body.classList.contains('show-wishlist')) toggleWishlistModal();
             if (body.classList.contains('show-quickview')) closeQuickView();
+            if (body.classList.contains('show-compare')) closeComparisonModal();
 
             if (modalBackdrop.classList.contains('hidden')) {
                 modalBackdrop.classList.remove('hidden');
@@ -695,23 +961,27 @@
                         const itemTotal = product.price * item.quantity;
                         subtotalPrice += itemTotal;
                         
+                        // NEW: Display size and color options
+                        const optionsText = item.size !== 'N/A' ? `${item.size} / ${item.color}` : '';
+
                         const cartItemHtml = `
                             <div class="flex items-center space-x-4 border-b pb-4 dark:border-gray-700">
                                 <img src="${product.image}" alt="${product.name}" class="w-16 h-16 rounded-lg object-cover border border-gray-100 dark:border-gray-700" onerror="this.onerror=null; this.src='https://placehold.co/100x100/E5E7EB/4B5563?text=No+Img';">
                                 <div class="flex-grow">
                                     <p class="text-base font-semibold text-gray-900 dark:text-white">${product.name}</p>
+                                    <p class="text-xs text-indigo-500">${optionsText}</p>
                                     <p class="text-sm text-gray-600 dark:text-gray-400">$${product.price.toFixed(2)} x ${item.quantity}</p>
                                 </div>
                                 <div class="flex items-center space-x-2">
-                                    <button onclick="changeQuantity(${item.id}, -1)" class="p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                                    <button onclick="changeQuantity('${item.cartItemId}', -1)" class="p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition">
                                         <i data-lucide="minus" class="w-4 h-4 text-gray-700 dark:text-gray-200"></i>
                                     </button>
                                     <span class="font-medium">${item.quantity}</span>
-                                    <button onclick="changeQuantity(${item.id}, 1)" class="p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                                    <button onclick="changeQuantity('${item.cartItemId}', 1)" class="p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition">
                                         <i data-lucide="plus" class="w-4 h-4 text-gray-700 dark:text-gray-200"></i>
                                     </button>
                                 </div>
-                                <button onclick="removeFromCart(${item.id})" class="p-1 text-red-500 hover:text-red-700 transition">
+                                <button onclick="removeFromCart('${item.cartItemId}')" class="p-1 text-red-500 hover:text-red-700 transition">
                                     <i data-lucide="trash-2" class="w-5 h-5"></i>
                                 </button>
                             </div>
@@ -732,7 +1002,6 @@
                 </div>
             `;
             
-            // Display discount line if applied
             if (appliedCoupon.code && appliedCoupon.discountPercentage > 0) {
                 totalsHtml += `
                     <div class="flex justify-between items-center text-lg text-green-600 font-semibold mb-2">
@@ -747,7 +1016,6 @@
                 `;
             }
 
-            // Final Total
             totalsHtml += `
                 <div class="flex justify-between items-center font-bold text-2xl pt-2 border-t border-gray-200 dark:border-gray-700">
                     <span>Order Total:</span>
@@ -840,6 +1108,17 @@
             badge.textContent = count;
             badge.classList.toggle('opacity-0', count === 0);
         }
+        
+        /**
+         * Updates the comparison badge count in the header. (NEW)
+         */
+        function updateCompareCount() {
+            const count = productsToCompareIds.length;
+            const badge = document.getElementById('compare-count');
+            badge.textContent = count;
+            badge.classList.toggle('opacity-0', count === 0);
+        }
+
 
         /**
          * Toggles between light and dark mode and persists the preference.
@@ -892,6 +1171,7 @@
             if (!email || !email.includes('@') || !email.includes('.')) {
                 messageElement.textContent = 'Please enter a valid email address.';
                 messageElement.classList.add('text-red-500');
+                showToast('Invalid email format.', 'error');
                 return;
             }
 
@@ -900,6 +1180,7 @@
                 messageElement.textContent = `Success! Thank you for subscribing. A 15% off coupon was sent to ${email}.`;
                 messageElement.classList.add('text-green-500');
                 emailInput.value = '';
+                showToast('Newsletter subscribed!', 'success');
             }, 500);
         }
 
@@ -913,7 +1194,6 @@
         function submitReview(productId) {
             const name = document.getElementById(`review-name-${productId}`).value.trim();
             const comment = document.getElementById(`review-comment-${productId}`).value.trim();
-            // Read the value from the checked radio button within the specific product's scope
             const ratingInput = document.querySelector(`input[name="review-rating-${productId}"]:checked`);
             const rating = ratingInput ? parseInt(ratingInput.value, 10) : null;
             const messageEl = document.getElementById(`review-message-${productId}`);
@@ -928,24 +1208,22 @@
             }
 
             const newReview = {
-                id: crypto.randomUUID(), // Unique ID for session
+                id: crypto.randomUUID(), 
                 name: name,
                 comment: comment,
                 rating: rating,
                 date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
             };
 
-            // Store review locally for the session
             if (!sessionReviews[productId]) {
                 sessionReviews[productId] = [];
             }
-            sessionReviews[productId].unshift(newReview); // Add to start
+            sessionReviews[productId].unshift(newReview); 
 
-            // Simulate success
             messageEl.textContent = 'Review submitted successfully! Thank you for your feedback.';
             messageEl.classList.add('text-green-600');
-            
-            // Re-render the modal to show the new review and clear the form
+            showToast('Review Submitted!', 'success');
+
             openQuickView(productId, { skipHistory: true });
         }
 
@@ -959,19 +1237,59 @@
             element.classList.add('ring-4', 'ring-indigo-500', 'ring-offset-2');
         }
 
+        /**
+         * NEW: Handles adding the product from quick view with selected options.
+         * @param {number} id - Product ID
+         */
+        function quickViewAddToCart(id) {
+            const sizeSelect = document.getElementById(`size-select-${id}`);
+            const colorSelect = document.getElementById(`color-select-${id}`);
+            
+            const size = sizeSelect ? sizeSelect.value : 'N/A';
+            const color = colorSelect ? colorSelect.value : 'Default';
+
+            if (size === '' || color === '') {
+                 showToast('Please select both Size and Color.', 'error');
+                 return;
+            }
+
+            // Quantity is always 1 from quick view
+            addToCart(id, 1, size, color);
+            closeQuickView();
+        }
+        
+        /**
+         * NEW: Simulates tracking a price for a product.
+         * @param {number} id - Product ID
+         */
+        function trackPrice(id) {
+            const isTracked = priceTrackedIds.includes(id);
+            const product = getProductById(id);
+            
+            if (isTracked) {
+                priceTrackedIds = priceTrackedIds.filter(itemId => itemId !== id);
+                showToast(`Price tracking stopped for ${product.name}.`, 'info');
+            } else {
+                priceTrackedIds.push(id);
+                showToast(`We'll notify you if the price of ${product.name} drops!`, 'success');
+            }
+            updatePriceTrackedState();
+            openQuickView(id, { skipHistory: true }); // Re-render to update button state
+        }
+
+
         function openQuickView(id, options = {}) {
             const product = getProductById(id);
             if (!product) return;
 
-            // Track view
             if (!options.skipHistory) {
                 addRecentlyViewed(id);
             }
 
-            // Close other modals
             const body = document.getElementById('body-container');
             if (body.classList.contains('show-cart')) toggleCart();
             if (body.classList.contains('show-wishlist')) toggleWishlistModal();
+            if (body.classList.contains('show-compare')) closeComparisonModal();
 
             const modalContainer = document.getElementById('quickview-modal');
             const images = product.gallery || [product.image];
@@ -991,7 +1309,6 @@
                 { id: 102, name: "Orion", comment: "Fits perfectly and looks great. Wish it came in more colors.", rating: 4, date: "Aug 28, 2025" }
             ];
             
-            // Combine static and session reviews
             const combinedReviews = [...(sessionReviews[id] || []), ...staticReviews];
             
             const reviewsHtml = combinedReviews.map(review => `
@@ -1006,8 +1323,38 @@
             `).join('');
 
             const ratingStars = generateRatingStars(product.rating);
-
-
+            
+            // NEW: Options Selectors
+            const sizesHtml = (product.sizes || []).map(size => `<option value="${size}">${size}</option>`).join('');
+            const colorsHtml = (product.colors || []).map(color => `<option value="${color}">${color}</option>`).join('');
+            
+            const optionsSection = `
+                <div class="flex space-x-4 mb-6">
+                    <!-- Size Select -->
+                    <div class="w-1/2">
+                        <label for="size-select-${id}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Size</label>
+                        <select id="size-select-${id}" class="w-full p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">Select Size</option>
+                            ${sizesHtml}
+                        </select>
+                    </div>
+                    <!-- Color Select -->
+                    <div class="w-1/2">
+                        <label for="color-select-${id}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Color</label>
+                        <select id="color-select-${id}" class="w-full p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">Select Color</option>
+                            ${colorsHtml}
+                        </select>
+                    </div>
+                </div>
+            `;
+            
+            const isPriceTracked = priceTrackedIds.includes(id);
+            const trackBtnClass = isPriceTracked ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600';
+            const trackBtnText = isPriceTracked ? 'Price Tracking Active' : 'Track Price Drop';
+            const trackBtnIcon = isPriceTracked ? 'bell-off' : 'bell';
+            const trackBtnTextColor = isPriceTracked ? 'text-white' : 'text-gray-800 dark:text-gray-200';
+            
             const modalContent = `
                 <div class="p-6">
                     <div class="flex justify-end mb-4">
@@ -1050,21 +1397,33 @@
 
                                 <p class="text-4xl font-extrabold text-indigo-600 my-4">$${product.price.toFixed(2)}</p>
                                 <p class="text-gray-600 dark:text-gray-300 mb-6">Ultra-soft, sustainable fabric designed for maximum comfort and style. Perfect for everyday wear or your next adventure. Limited stock available in this run.</p>
+                                
+                                <!-- NEW: Options Section -->
+                                ${product.sizes ? optionsSection : ''}
                             </div>
                             
-                            <!-- Action -->
-                            <button onclick="addToCart(${product.id}); closeQuickView();" 
-                                class="w-full bg-indigo-600 text-white p-4 rounded-xl text-lg font-semibold hover:bg-indigo-700 transition duration-200 flex items-center justify-center space-x-2 shadow-xl transform hover:scale-[1.01]">
-                                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
-                                <span>Add to Cart</span>
-                            </button>
+                            <!-- Action Buttons -->
+                            <div class="mt-auto space-y-3">
+                                <button onclick="quickViewAddToCart(${product.id});" 
+                                    class="w-full bg-indigo-600 text-white p-4 rounded-xl text-lg font-semibold hover:bg-indigo-700 transition duration-200 flex items-center justify-center space-x-2 shadow-xl transform hover:scale-[1.01]">
+                                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                                    <span>Add to Cart</span>
+                                </button>
+                                
+                                <!-- NEW: Track Price Button -->
+                                <button onclick="trackPrice(${product.id})" 
+                                    class="w-full ${trackBtnClass} ${trackBtnTextColor} p-3 rounded-xl text-sm font-semibold transition duration-200 flex items-center justify-center space-x-2 shadow-md">
+                                    <i data-lucide="${trackBtnIcon}" class="w-4 h-4"></i>
+                                    <span>${trackBtnText}</span>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Full Width Section for Reviews (Order 3) -->
                         <div class="col-span-full order-3 mt-6">
                             <h4 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-t pt-4">Customer Reviews</h4>
                             
-                            <!-- Submit Review Form (FIXED Star Selector) -->
+                            <!-- Submit Review Form -->
                             <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg mb-6 border border-gray-100 dark:border-gray-700">
                                 <h5 class="text-xl font-semibold mb-3">Write a Review</h5>
                                 <div class="space-y-3">
@@ -1072,7 +1431,6 @@
                                     <div class="flex items-center space-x-3">
                                         <label class="font-medium text-sm">Your Rating:</label>
                                         
-                                        <!-- FIX: Using CSS-driven star rating structure -->
                                         <div id="review-star-selector" class="rating-container">
                                             ${[5, 4, 3, 2, 1].map(r => `
                                                 <input type="radio" id="rating-${id}-${r}" name="review-rating-${id}" value="${r}" ${r === 5 ? 'checked' : ''}>
@@ -1102,8 +1460,12 @@
             body.classList.add('show-quickview');
             body.classList.add('overflow-hidden');
             lucide.createIcons();
-
-            // FIX: Removed unnecessary JS for star selector as it is now CSS driven
+            
+            // Set initial options for quick buy selectors
+            const initialSize = product.sizes?.[0];
+            const initialColor = product.colors?.[0];
+            if (initialSize) document.getElementById(`size-select-${id}`).value = initialSize;
+            if (initialColor) document.getElementById(`color-select-${id}`).value = initialColor;
         }
 
         function closeQuickView() {
@@ -1127,6 +1489,7 @@
             applyFilters(); 
             updateCartCount();
             updateWishlistCount();
+            updateCompareCount(); // NEW
             renderCart(); 
             renderWishlist(); 
             renderRecentlyViewed(); 
